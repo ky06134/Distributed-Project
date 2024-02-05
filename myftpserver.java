@@ -9,11 +9,18 @@ public class myftpserver {
         InputStreamReader reader = null;
         OutputStreamWriter writer = null;
         BufferedReader br= null;
-        BufferedWriter bw = null;        
+        BufferedWriter bw = null;
+        Integer port = 0;        
         
-        
-        ServerSocket server = new ServerSocket(4333);
-        System.out.println("server is now online");
+        try {
+            port = Integer.valueOf(args[0]); //grab port from command line arg
+        } catch (NumberFormatException e) {
+            System.out.println("Invalid Port");
+            System.exit(0);
+        } //catch
+
+        ServerSocket server = new ServerSocket(port);
+        System.out.println("server is now online running on port: " + port);
 
         Socket s =server.accept(); //waits for connection from client
 
@@ -31,7 +38,7 @@ public class myftpserver {
 
         bw.write("commmand received");
         
-
+        server.close();
         System.exit(0);
     
     }

@@ -7,7 +7,18 @@ class myftp {
     
     public static void main(String[] args) throws IOException{ 
         
-        Socket client = new Socket("localhost", 4333);
+        Integer port = 0;
+        String machineName = "";       
+        
+        try {
+            machineName = args[0];
+            port = Integer.valueOf(args[1]); //grab port from command line arg
+        } catch (NumberFormatException e) {
+            System.out.println("Bad arguments");
+            System.exit(0);
+        } //catch
+
+        Socket client = new Socket("localhost", port);
 
         InputStreamReader reader = new InputStreamReader(client.getInputStream());
         OutputStreamWriter writer = new OutputStreamWriter(client.getOutputStream());
