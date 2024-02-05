@@ -21,17 +21,16 @@ class myftp {
 
         Socket client = new Socket("localhost", port);
         Scanner scanner = new Scanner(System.in);
-
-
-
+        
         InputStreamReader reader = new InputStreamReader(client.getInputStream());
         OutputStreamWriter writer = new OutputStreamWriter(client.getOutputStream());
 
         BufferedReader br = new BufferedReader(reader);
         BufferedWriter bw = new BufferedWriter(writer);
+
         while (true) {
             
-            //moved it out to test
+
         
             String serverMsg = br.readLine();
             System.out.print(serverMsg);

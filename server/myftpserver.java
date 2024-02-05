@@ -27,31 +27,55 @@ public class myftpserver {
         Socket s =server.accept(); //waits for connection from client
 
         System.out.println("Client Connected");
+        
+            reader = new InputStreamReader(s.getInputStream());
+            writer = new OutputStreamWriter(s.getOutputStream());
 
+            br = new BufferedReader(reader);
+            bw = new BufferedWriter(writer);
 
-
-        reader = new InputStreamReader(s.getInputStream());
-        writer = new OutputStreamWriter(s.getOutputStream());
-
-        br = new BufferedReader(reader);
-        bw = new BufferedWriter(writer);
         while (true) {
         
-            //moved it out to test
+            
 
             bw.write("myftp>");
             bw.newLine();
             bw.flush();
 
             String msgFromClient = br.readLine();
+            String arr[] = msgFromClient.split(" ", 2);
 
             System.out.println("The command is " + msgFromClient);
 
-            if (msgFromClient.equals("quit")) {
-                s.close();
+            if (arr[0].equals("get")) {
+                
             }
 
-            if (msgFromClient.equals("pwd")) {
+            if (arr[0].equals("put")) {
+                
+            }
+
+            if (arr[0].equals("delete")) {
+                
+            }
+
+            if (arr[0].equals("ls")) {
+                
+            }
+
+            if (arr[0].equals("cd")) {
+                
+            }
+
+            if (arr[0].equals("mkdir")) {
+                
+            }
+
+            if (arr[0].equals("pwd")) {
+
+            }
+
+            if (arr[0].equals("quit")) {
 
             }
         }
