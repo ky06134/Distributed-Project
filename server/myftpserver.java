@@ -27,14 +27,16 @@ public class myftpserver {
         Socket s =server.accept(); //waits for connection from client
 
         System.out.println("Client Connected");
-
-        while (true) {
         
             reader = new InputStreamReader(s.getInputStream());
             writer = new OutputStreamWriter(s.getOutputStream());
 
             br = new BufferedReader(reader);
             bw = new BufferedWriter(writer);
+
+        while (true) {
+        
+            
 
             bw.write("myftp>");
             bw.newLine();
