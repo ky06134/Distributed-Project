@@ -28,13 +28,16 @@ public class myftpserver {
 
         System.out.println("Client Connected");
 
+
+
+        reader = new InputStreamReader(s.getInputStream());
+        writer = new OutputStreamWriter(s.getOutputStream());
+
+        br = new BufferedReader(reader);
+        bw = new BufferedWriter(writer);
         while (true) {
         
-            reader = new InputStreamReader(s.getInputStream());
-            writer = new OutputStreamWriter(s.getOutputStream());
-
-            br = new BufferedReader(reader);
-            bw = new BufferedWriter(writer);
+            //moved it out to test
 
             bw.write("myftp>");
             bw.newLine();
