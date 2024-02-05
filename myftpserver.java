@@ -10,7 +10,7 @@ public class myftpserver {
         OutputStreamWriter writer = null;
         BufferedReader br= null;
         BufferedWriter bw = null;
-        Integer port = 0;        
+        Integer port = 0; 
         
         try {
             port = Integer.valueOf(args[0]); //grab port from command line arg
@@ -22,24 +22,36 @@ public class myftpserver {
         ServerSocket server = new ServerSocket(port);
         System.out.println("server is now online running on port: " + port);
 
+
         Socket s =server.accept(); //waits for connection from client
 
         System.out.println("Client Connected");
         
-        reader = new InputStreamReader(s.getInputStream());
-        writer = new OutputStreamWriter(s.getOutputStream());
+        while (true) {
+            reader = new InputStreamReader(s.getInputStream());
+            writer = new OutputStreamWriter(s.getOutputStream());
 
-        br = new BufferedReader(reader);
-        bw = new BufferedWriter(writer);
+            br = new BufferedReader(reader);
+            bw = new BufferedWriter(writer);
 
-        String msgFromClient = br.readLine();
+            String msgFromClient = br.readLine();
 
-        System.out.println("The command is " + msgFromClient);
+            System.out.println("The command is " + msgFromClient);
 
-        bw.write("commmand received");
-        
-        server.close();
+            
+
+            if (msgFromClient.equals("quit")) {
+                
+                break;
+            }
+
+            if (msgFromClient.equals("pwd")) {
+
+            }
+
+        }  
+
         System.exit(0);
     
-    }
+    
 }

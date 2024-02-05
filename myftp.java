@@ -20,6 +20,8 @@ class myftp {
 
         Socket client = new Socket("localhost", port);
 
+        while (true) {
+
         InputStreamReader reader = new InputStreamReader(client.getInputStream());
         OutputStreamWriter writer = new OutputStreamWriter(client.getOutputStream());
 
@@ -35,6 +37,8 @@ class myftp {
         toSend.flush();
 
         scanner.close();
+
+        }
 
 
         
