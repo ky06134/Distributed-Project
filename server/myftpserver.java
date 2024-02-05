@@ -1,3 +1,4 @@
+package server;
 import java.io.*;
 import java.net.*;
 import java.util.*;
@@ -26,6 +27,8 @@ public class myftpserver {
         Socket s =server.accept(); //waits for connection from client
 
         System.out.println("Client Connected");
+
+        while (true) {
         
             reader = new InputStreamReader(s.getInputStream());
             writer = new OutputStreamWriter(s.getOutputStream());
@@ -33,22 +36,21 @@ public class myftpserver {
             br = new BufferedReader(reader);
             bw = new BufferedWriter(writer);
 
-            
+            bw.write("myftp>");
+            bw.newLine();
+            bw.flush();
 
-                bw.write("myftp>");
-                bw.newLine();
-                bw.flush();
+            String msgFromClient = br.readLine();
 
-                String msgFromClient = br.readLine();
+            System.out.println("The command is " + msgFromClient);
 
-                System.out.println("The command is " + msgFromClient);
+            if (msgFromClient.equals("quit")) {
+                s.close();
+            }
 
-                if (msgFromClient.equals("quit")) {
-                    server.close();
-                }
+            if (msgFromClient.equals("pwd")) {
 
-                if (msgFromClient.equals("pwd")) {
-
-                }
+            }
+        }
     }
 }

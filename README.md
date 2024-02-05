@@ -1,2 +1,7 @@
-# Distributed-Project
-Java implementation of FTP Server
+# Distributed-Project 1
+
+Kevin Yang
+Ethan Pham
+Brett Ruane
+
+This project was done in its entirety by Kevin Yang, Ethan pham and Brett Ruane. We hereby state that we have not received unauthorized help of any form.
