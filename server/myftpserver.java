@@ -76,7 +76,7 @@ public class myftpserver {
             }
 
             if (arr[0].equals("quit")) {
-
+                
             }
         }
     }
