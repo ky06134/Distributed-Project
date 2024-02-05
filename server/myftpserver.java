@@ -41,14 +41,39 @@ public class myftpserver {
             bw.flush();
 
             String msgFromClient = br.readLine();
+            String arr[] = msgFromClient.split(" ", 2);
 
             System.out.println("The command is " + msgFromClient);
 
-            if (msgFromClient.equals("quit")) {
-                s.close();
+            if (arr[0].equals("get")) {
+                
             }
 
-            if (msgFromClient.equals("pwd")) {
+            if (arr[0].equals("put")) {
+                
+            }
+
+            if (arr[0].equals("delete")) {
+                
+            }
+
+            if (arr[0].equals("ls")) {
+                
+            }
+
+            if (arr[0].equals("cd")) {
+                
+            }
+
+            if (arr[0].equals("mkdir")) {
+                
+            }
+
+            if (arr[0].equals("pwd")) {
+
+            }
+
+            if (arr[0].equals("quit")) {
 
             }
         }
