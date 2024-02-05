@@ -52,6 +52,5 @@ public class myftpserver {
         }  
 
         System.exit(0);
-    
-    
+    }
 }
