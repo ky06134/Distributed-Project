@@ -27,30 +27,28 @@ public class myftpserver {
 
         System.out.println("Client Connected");
         
-        while (true) {
             reader = new InputStreamReader(s.getInputStream());
             writer = new OutputStreamWriter(s.getOutputStream());
 
             br = new BufferedReader(reader);
             bw = new BufferedWriter(writer);
 
-            String msgFromClient = br.readLine();
-
-            System.out.println("The command is " + msgFromClient);
-
             
 
-            if (msgFromClient.equals("quit")) {
-                
-                break;
-            }
+                bw.write("myftp>");
+                bw.newLine();
+                bw.flush();
 
-            if (msgFromClient.equals("pwd")) {
+                String msgFromClient = br.readLine();
 
-            }
+                System.out.println("The command is " + msgFromClient);
 
-        }  
+                if (msgFromClient.equals("quit")) {
+                    server.close();
+                }
 
-        System.exit(0);
+                if (msgFromClient.equals("pwd")) {
+
+                }
     }
 }

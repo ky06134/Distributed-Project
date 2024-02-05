@@ -20,29 +20,23 @@ class myftp {
 
         Socket client = new Socket("localhost", port);
 
-        while (true) {
 
         InputStreamReader reader = new InputStreamReader(client.getInputStream());
         OutputStreamWriter writer = new OutputStreamWriter(client.getOutputStream());
 
-        BufferedReader response = new BufferedReader(reader);
-        BufferedWriter toSend = new BufferedWriter(writer);
+        BufferedReader br = new BufferedReader(reader);
+        BufferedWriter bw = new BufferedWriter(writer);
 
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter Command: ");
+        String serverMsg = br.readLine();
+        System.out.print(serverMsg);
         String command = scanner.nextLine();
 
-        toSend.write(command);
-        toSend.newLine();
-        toSend.flush();
+        bw.write(command);
+        bw.newLine();
+        bw.flush();
 
         scanner.close();
-
-        }
-
-
-        
-
         
     }
 }
