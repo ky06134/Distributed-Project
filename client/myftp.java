@@ -53,7 +53,7 @@ class myftp {
             }
 
             if (arr[0].equals("delete")) {
-                
+
             }
 
             if (arr[0].equals("ls")) {
@@ -62,7 +62,8 @@ class myftp {
             }
 
             if (arr[0].equals("cd")) {
-
+                serverMsg = br.readLine();
+                System.out.println(serverMsg);
             }
 
             if (arr[0].equals("mkdir")) {
@@ -107,23 +108,16 @@ class myftp {
         OutputStream out = new FileOutputStream(destination);
         StringBuilder sb = new StringBuilder();
 
-        final String delimiter = "\r\n\r\n"; // Define a delimiter
+        String delimiter = "\r\n\r\n"; // Define a delimiter
 
-        //read and write to a file
+        // read and write to a file
         byte[] buffer = new byte[1024];
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
-            out.write(buffer, 0, bytesRead);
+
             sb.append(new String(buffer, 0, bytesRead));
-            
-            if (sb.toString().contains(delimiter)) {
-                break;
-            }
-        
-        } //while
 
-
+        }
     }
-
-
-} // myftp
+    // myftp
+}

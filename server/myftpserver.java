@@ -78,6 +78,8 @@ public class myftpserver {
             if (arr[0].equals("pwd")) {
                 String path = System.getProperty("user.dir");
                 bw.write("path" + path);
+                bw.newLine();
+                bw.flush();
             }
 
             if (arr[0].equals("ls")) {
