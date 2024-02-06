@@ -59,11 +59,8 @@ public class myftpserver {
                 delete(arr[1]);
             }
 
-            if (arr[0].equals("pwd")) {
-                String path = System.getProperty("user.dir");
-                bw.write("path" + path);
-                bw.newLine();
-                bw.flush();
+            if (arr[0].equals("ls")) {
+                
             }
 
             if (arr[0].equals("cd")) {
@@ -74,8 +71,9 @@ public class myftpserver {
                 makeDirectory(arr[1]);
             }
 
-            if (arr[0].equals("ls")) {
-                bw.write(listDirectory("."));
+            if (arr[0].equals("pwd")) {
+                String path = System.getProperty("user.dir");
+                bw.write("path" + path);
                 bw.newLine();
                 bw.flush();
             }
@@ -102,13 +100,13 @@ public class myftpserver {
             out.write(buffer, 0, bytesRead);
             sb.append(new String(buffer, 0, bytesRead));
 
-
-            int delimiterIndex = sb.indexOf(delimiter);
-            if (delimiterIndex != -1) {
-                sb.delete(delimiterIndex + delimiter.length(), sb.length());
+            if (sb.toString().contains(delimiter)) {
                 break;
             }
+
         } //while
+
+        
 
     }
 
@@ -143,17 +141,4 @@ public class myftpserver {
         file.mkdir();
     } //makeDirectory
 
-    private static String listDirectory(String directory) {
-        String res = "";
-        File currentDirectory = new File(directory);
-        File[] files = currentDirectory.listFiles();
-        if (files != null) {
-            for (File file : files) {
-                res += file.getName() + "\t";
-            }
-        } else {
-            System.out.println("No files found.");
-        }
-        return res;
-    } 
 } //myftpserver

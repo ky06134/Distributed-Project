@@ -119,7 +119,10 @@ class myftp {
             if (sb.toString().contains(delimiter)) {
                 break;
             }
+        
         } //while
+
+
     }
 
 
