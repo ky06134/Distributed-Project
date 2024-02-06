@@ -57,7 +57,8 @@ class myftp {
             }
 
             if (arr[0].equals("ls")) {
-
+                serverMsg = br.readLine();
+                System.out.println(serverMsg);
             }
 
             if (arr[0].equals("cd")) {
