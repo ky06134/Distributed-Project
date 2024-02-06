@@ -1,40 +1,40 @@
 package server;
+
 import java.io.*;
 import java.net.*;
 import java.util.*;
 
 public class myftpserver {
-    public static void main(String[]args) throws Exception {
+    public static void main(String[] args) throws Exception {
 
         Socket socket = null;
         InputStreamReader reader = null;
         OutputStreamWriter writer = null;
-        BufferedReader br= null;
+        BufferedReader br = null;
         BufferedWriter bw = null;
-        Integer port = 0; 
-        
+        Integer port = 0;
+
         try {
-            port = Integer.valueOf(args[0]); //grab port from command line arg
+            port = Integer.valueOf(args[0]); // grab port from command line arg
         } catch (NumberFormatException e) {
             System.out.println("Invalid Port");
             System.exit(0);
-        } //catch
+        } // catch
 
         ServerSocket server = new ServerSocket(port);
         System.out.println("server is now online running on port: " + port);
 
-
-        Socket s =server.accept(); //waits for connection from client
+        Socket s = server.accept(); // waits for connection from client
 
         System.out.println("Client Connected");
-        
+
         reader = new InputStreamReader(s.getInputStream());
         writer = new OutputStreamWriter(s.getOutputStream());
         br = new BufferedReader(reader);
         bw = new BufferedWriter(writer);
 
         while (true) {
-    
+
             bw.write("myftp>");
             bw.newLine();
             bw.flush();
@@ -59,14 +59,16 @@ public class myftpserver {
                 delete(arr[1]);
             }
 
-            if (arr[0].equals("ls")) {
-                bw.write(listDirectory("."));
+            if (arr[0].equals("cd")) {
+                String path = System.getProperty("user.dir");
+                if (arr[1].equals("..")) {
+                    System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
+                } else {
+                    System.setProperty("user.dir", path + "/" + arr[1]);
+                }
+                bw.write("path" + System.getProperty("user.dir"));
                 bw.newLine();
                 bw.flush();
-            }
-
-            if (arr[0].equals("cd")) {
-                
             }
 
             if (arr[0].equals("mkdir")) {
@@ -76,16 +78,20 @@ public class myftpserver {
             if (arr[0].equals("pwd")) {
                 String path = System.getProperty("user.dir");
                 bw.write("path" + path);
+            }
+
+            if (arr[0].equals("ls")) {
+                bw.write(listDirectory(System.getProperty("user.dir")));
                 bw.newLine();
                 bw.flush();
             }
 
             if (arr[0].equals("quit")) {
 
-            } //if
-        } //while
+            } // if
+        } // while
 
-    } //main
+    } // main
 
     private static void put(String destination, Socket s) throws IOException {
 
@@ -95,20 +101,19 @@ public class myftpserver {
 
         final String delimiter = "\r\n\r\n"; // Define a delimiter
 
-        //read and write to a file
+        // read and write to a file
         byte[] buffer = new byte[1024];
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
             out.write(buffer, 0, bytesRead);
             sb.append(new String(buffer, 0, bytesRead));
 
-            if (sb.toString().contains(delimiter)) {
+            int delimiterIndex = sb.indexOf(delimiter);
+            if (delimiterIndex != -1) {
+                sb.delete(delimiterIndex + delimiter.length(), sb.length());
                 break;
             }
-
-        } //while
-
-        
+        } // while
 
     }
 
@@ -136,12 +141,12 @@ public class myftpserver {
     private static void delete(String filename) {
         File file = new File(filename);
         file.delete();
-    } //delete
+    } // delete
 
     private static void makeDirectory(String directoryName) {
         File file = new File(directoryName);
         file.mkdir();
-    } //makeDirectory
+    } // makeDirectory
 
     private static String listDirectory(String directory) {
         String res = "";
