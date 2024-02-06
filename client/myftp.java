@@ -53,7 +53,7 @@ class myftp {
             }
 
             if (arr[0].equals("delete")) {
-
+                
             }
 
             if (arr[0].equals("ls")) {
