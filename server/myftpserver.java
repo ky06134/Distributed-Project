@@ -30,15 +30,17 @@ public class myftpserver {
         
         reader = new InputStreamReader(s.getInputStream());
         writer = new OutputStreamWriter(s.getOutputStream());
-
         br = new BufferedReader(reader);
         bw = new BufferedWriter(writer);
 
         while (true) {
-
+    
             bw.write("myftp>");
             bw.newLine();
             bw.flush();
+
+            br = new BufferedReader(reader);
+            bw = new BufferedWriter(writer);
 
             String msgFromClient = br.readLine();
             String arr[] = msgFromClient.split(" ");
@@ -50,7 +52,6 @@ public class myftpserver {
             }
 
             if (arr[0].equals("put")) {
-                System.out.println("we made it here");
                 put(arr[1], s);
             }
 
@@ -83,23 +84,18 @@ public class myftpserver {
 
     private static void put(String destination, Socket s) throws IOException {
 
-        //read stream
-        InputStream inputStream = s.getInputStream();
-        BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
-
-        //write stream
-        FileOutputStream fileOutputStream = new FileOutputStream(destination);
-        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+        InputStream in = s.getInputStream();
+        OutputStream out = new FileOutputStream(destination);
 
         //read and write to a file
         byte[] buffer = new byte[1024];
         int bytesRead;
-        while ((bytesRead = bufferedInputStream.read(buffer)) != -1) {
-            bufferedOutputStream.write(buffer, 0, bytesRead);
+        while ((bytesRead = in.read(buffer)) > 0) {
+            out.write(buffer, 0, bytesRead);
         } //while
 
-        bufferedOutputStream.flush();
-        bufferedOutputStream.close();
+        // in.close();
+        // out.close();
 
     }
 
