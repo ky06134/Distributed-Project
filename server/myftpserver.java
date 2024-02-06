@@ -110,9 +110,7 @@ public class myftpserver {
             out.write(buffer, 0, bytesRead);
             sb.append(new String(buffer, 0, bytesRead));
 
-            int delimiterIndex = sb.indexOf(delimiter);
-            if (delimiterIndex != -1) {
-                sb.delete(delimiterIndex + delimiter.length(), sb.length());
+            if (sb.toString().contains(delimiter)) {
                 break;
             }
         } // while
