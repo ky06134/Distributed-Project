@@ -60,7 +60,9 @@ public class myftpserver {
             }
 
             if (arr[0].equals("ls")) {
-                
+                bw.write(listDirectory("."));
+                bw.newLine();
+                bw.flush();
             }
 
             if (arr[0].equals("cd")) {
@@ -140,5 +142,19 @@ public class myftpserver {
         File file = new File(directoryName);
         file.mkdir();
     } //makeDirectory
+
+    private static String listDirectory(String directory) {
+        String res = "";
+        File currentDirectory = new File(directory);
+        File[] files = currentDirectory.listFiles();
+        if (files != null) {
+            for (File file : files) {
+                res += file.getName() + "\t";
+            }
+        } else {
+            System.out.println("No files found.");
+        }
+        return res;
+    } 
 
 } //myftpserver
