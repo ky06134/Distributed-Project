@@ -64,7 +64,7 @@ public class myftpserver {
                 if (arr[1].equals("..")) {
                     System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
                 } else {
-                    System.setProperty("user.dir", path + "/" + arr[1]);
+                    System.setProperty("user.dir", path + "\\" + arr[1]);
                 }
                 bw.write("path" + System.getProperty("user.dir"));
                 bw.newLine();
@@ -160,6 +160,6 @@ public class myftpserver {
             System.out.println("No files found.");
         }
         return res;
-    } 
+    }
 
-} //myftpserver
+} // myftpserver
