@@ -45,7 +45,7 @@ class myftp {
             String arr[] = command.split(" ");
 
             if (arr[0].equals("get")) {
-
+                get(arr[1], client);
             }
 
             if (arr[0].equals("put")) {
@@ -101,4 +101,32 @@ class myftp {
         // out.close();
 
     } // get
+
+    private static void get(String destination, Socket s) throws IOException {
+
+        InputStream in = s.getInputStream();
+        OutputStream out = new FileOutputStream(destination);
+        StringBuilder sb = new StringBuilder();
+
+        final String delimiter = "\r\n\r\n"; // Define a delimiter
+
+        //read and write to a file
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = in.read(buffer)) != -1) {
+            out.write(buffer, 0, bytesRead);
+            sb.append(new String(buffer, 0, bytesRead));
+            
+            if (sb.toString().contains(delimiter)) {
+                break;
+            }
+        } //while
+
+        System.out.println("done");
+
+        // in.close();
+        // out.close();
+    }
+
+
 } // myftp

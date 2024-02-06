@@ -48,7 +48,7 @@ public class myftpserver {
             System.out.println("The command is " + msgFromClient);
 
             if (arr[0].equals("get")) {
-                
+                get(arr[1], s);
             }
 
             if (arr[0].equals("put")) {
@@ -110,6 +110,29 @@ public class myftpserver {
         // in.close();
         // out.close();
     }
+
+    /*
+     * given a filepath and socket send the file over TCP socket
+     */
+    private static void get(String filepath, Socket s) throws FileNotFoundException, IOException {
+
+        // read stream
+        File file = new File(filepath);
+        InputStream in = new FileInputStream(file);
+        OutputStream out = s.getOutputStream();
+
+        // read and send in chunks
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = in.read(buffer)) > 0) {
+            out.write(buffer, 0, bytesRead);
+        } // while
+        String delimiter = "\r\n\r\n";
+        out.write(delimiter.getBytes());
+        // in.close();
+        // out.close();
+
+    } // get
 
     private static void delete(String filename) {
         File file = new File(filename);
