@@ -98,8 +98,6 @@ class myftp {
         } // while
         String delimiter = "\r\n\r\n";
         out.write(delimiter.getBytes());
-        // in.close();
-        // out.close();
 
     } // get
 
@@ -122,11 +120,6 @@ class myftp {
                 break;
             }
         } //while
-
-        System.out.println("done");
-
-        // in.close();
-        // out.close();
     }
 
 
