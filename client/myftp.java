@@ -69,7 +69,8 @@ class myftp {
             }
 
             if (arr[0].equals("pwd")) {
-
+                serverMsg = br.readLine();
+                System.out.println(serverMsg);
             }
 
             if (arr[0].equals("quit")) {
@@ -94,7 +95,8 @@ class myftp {
         while ((bytesRead = in.read(buffer)) > 0) {
             out.write(buffer, 0, bytesRead);
         } // while
-
+        String delimiter = "\r\n\r\n";
+        out.write(delimiter.getBytes());
         // in.close();
         // out.close();
 
