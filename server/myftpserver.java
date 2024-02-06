@@ -99,16 +99,15 @@ public class myftpserver {
         while ((bytesRead = in.read(buffer)) != -1) {
             out.write(buffer, 0, bytesRead);
             sb.append(new String(buffer, 0, bytesRead));
-            
-            if (sb.toString().contains(delimiter)) {
+
+
+            int delimiterIndex = sb.indexOf(delimiter);
+            if (delimiterIndex != -1) {
+                sb.delete(delimiterIndex + delimiter.length(), sb.length());
                 break;
             }
         } //while
 
-        System.out.println("done");
-
-        // in.close();
-        // out.close();
     }
 
     /*
@@ -129,8 +128,6 @@ public class myftpserver {
         } // while
         String delimiter = "\r\n\r\n";
         out.write(delimiter.getBytes());
-        // in.close();
-        // out.close();
 
     } // get
 
