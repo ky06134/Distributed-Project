@@ -56,7 +56,7 @@ public class myftpserver {
             }
 
             if (arr[0].equals("delete")) {
-                
+                delete(arr[1]);
             }
 
             if (arr[0].equals("ls")) {
@@ -68,7 +68,7 @@ public class myftpserver {
             }
 
             if (arr[0].equals("mkdir")) {
-                
+                makeDirectory(arr[1]);
             }
 
             if (arr[0].equals("pwd")) {
@@ -130,5 +130,15 @@ public class myftpserver {
         out.write(delimiter.getBytes());
 
     } // get
+
+    private static void delete(String filename) {
+        File file = new File(filename);
+        file.delete();
+    } //delete
+
+    private static void makeDirectory(String directoryName) {
+        File file = new File(directoryName);
+        file.mkdir();
+    } //makeDirectory
 
 } //myftpserver
