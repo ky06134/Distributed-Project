@@ -28,22 +28,20 @@ public class myftpserver {
 
         System.out.println("Client Connected");
         
-            reader = new InputStreamReader(s.getInputStream());
-            writer = new OutputStreamWriter(s.getOutputStream());
+        reader = new InputStreamReader(s.getInputStream());
+        writer = new OutputStreamWriter(s.getOutputStream());
 
-            br = new BufferedReader(reader);
-            bw = new BufferedWriter(writer);
+        br = new BufferedReader(reader);
+        bw = new BufferedWriter(writer);
 
         while (true) {
-        
-            
 
             bw.write("myftp>");
             bw.newLine();
             bw.flush();
 
             String msgFromClient = br.readLine();
-            String arr[] = msgFromClient.split(" ", 2);
+            String arr[] = msgFromClient.split(" ");
 
             System.out.println("The command is " + msgFromClient);
 
@@ -52,7 +50,8 @@ public class myftpserver {
             }
 
             if (arr[0].equals("put")) {
-                
+                System.out.println("we made it here");
+                put(arr[1], s);
             }
 
             if (arr[0].equals("delete")) {
@@ -76,8 +75,32 @@ public class myftpserver {
             }
 
             if (arr[0].equals("quit")) {
-                
-            }
-        }
+
+            } //if
+        } //while
+
+    } //main
+
+    private static void put(String destination, Socket s) throws IOException {
+
+        //read stream
+        InputStream inputStream = s.getInputStream();
+        BufferedInputStream bufferedInputStream = new BufferedInputStream(inputStream);
+
+        //write stream
+        FileOutputStream fileOutputStream = new FileOutputStream(destination);
+        BufferedOutputStream bufferedOutputStream = new BufferedOutputStream(fileOutputStream);
+
+        //read and write to a file
+        byte[] buffer = new byte[1024];
+        int bytesRead;
+        while ((bytesRead = bufferedInputStream.read(buffer)) != -1) {
+            bufferedOutputStream.write(buffer, 0, bytesRead);
+        } //while
+
+        bufferedOutputStream.flush();
+        bufferedOutputStream.close();
+
     }
-}
+
+} //myftpserver
