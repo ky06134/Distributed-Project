@@ -53,7 +53,8 @@ public class myftpserver {
             }
 
             if (arr[0].equals("delete")) {
-                delete(arr[1]);
+                String path = System.getProperty("user.dir");
+                delete(path + "\\" + arr[1]);
             }
 
             if (arr[0].equals("cd")) {
@@ -69,7 +70,8 @@ public class myftpserver {
             }
 
             if (arr[0].equals("mkdir")) {
-                makeDirectory(arr[1]);
+                String path = System.getProperty("user.dir");
+                makeDirectory(path + "\\" + arr[1]);
             }
 
             if (arr[0].equals("pwd")) {
