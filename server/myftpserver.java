@@ -43,11 +43,13 @@ public class myftpserver {
             System.out.println("The command is " + msgFromClient);
 
             if (arr[0].equals("get")) {
-                get(arr[1], s);
+                String path = System.getProperty("user.dir");
+                get(path + "\\" + arr[1], s);
             }
 
             if (arr[0].equals("put")) {
-                put(arr[1], s);
+                String path = System.getProperty("user.dir");
+                put(path + "\\" + arr[1], s);
             }
 
             if (arr[0].equals("delete")) {
@@ -61,7 +63,7 @@ public class myftpserver {
                 } else {
                     System.setProperty("user.dir", path + "\\" + arr[1]);
                 }
-                bw.write("path" + System.getProperty("user.dir"));
+                bw.write(System.getProperty("user.dir"));
                 bw.newLine();
                 bw.flush();
             }
@@ -72,7 +74,7 @@ public class myftpserver {
 
             if (arr[0].equals("pwd")) {
                 String path = System.getProperty("user.dir");
-                bw.write("path" + path);
+                bw.write(path);
                 bw.newLine();
                 bw.flush();
             }
