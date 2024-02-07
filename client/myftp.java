@@ -39,9 +39,6 @@ class myftp {
             bw.newLine();
             bw.flush();
 
-            br = new BufferedReader(reader);
-            bw = new BufferedWriter(writer);
-
             String arr[] = command.split(" ");
 
             if (arr[0].equals("get")) {

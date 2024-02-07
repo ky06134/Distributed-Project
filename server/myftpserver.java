@@ -23,24 +23,20 @@ public class myftpserver {
 
         ServerSocket server = new ServerSocket(port);
         System.out.println("server is now online running on port: " + port);
+        Socket s = server.accept(); // waits for connection from client
+        
+        reader = new InputStreamReader(s.getInputStream());
+        writer = new OutputStreamWriter(s.getOutputStream());
+        br = new BufferedReader(reader);
+        bw = new BufferedWriter(writer);
 
         while (true) {
-
-            Socket s = server.accept(); // waits for connection from client
-
+            //s = server.accept();
             System.out.println("Client Connected");
-
-            reader = new InputStreamReader(s.getInputStream());
-            writer = new OutputStreamWriter(s.getOutputStream());
-            br = new BufferedReader(reader);
-            bw = new BufferedWriter(writer);
 
             bw.write("myftp>");
             bw.newLine();
             bw.flush();
-
-            br = new BufferedReader(reader);
-            bw = new BufferedWriter(writer);
 
             String msgFromClient = br.readLine();
             String arr[] = msgFromClient.split(" ");
@@ -139,6 +135,8 @@ public class myftpserver {
         } // while
         String delimiter = "\0";
         out.write(delimiter.getBytes());
+        out.flush();
+        //s.shutdownOutput();
 
     } // get
 
