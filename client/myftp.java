@@ -73,6 +73,8 @@ class myftp {
             }
 
             if (arr[0].equals("quit")) {
+                serverMsg = br.readLine();
+                System.out.println(serverMsg);
                 break;
             } // if
         } // while
