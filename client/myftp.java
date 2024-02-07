@@ -76,9 +76,10 @@ class myftp {
             }
 
             if (arr[0].equals("quit")) {
-
+                break;
             } // if
         } // while
+        client.close();
     } // main
 
     /*

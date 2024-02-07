@@ -24,16 +24,16 @@ public class myftpserver {
         ServerSocket server = new ServerSocket(port);
         System.out.println("server is now online running on port: " + port);
 
-        Socket s = server.accept(); // waits for connection from client
-
-        System.out.println("Client Connected");
-
-        reader = new InputStreamReader(s.getInputStream());
-        writer = new OutputStreamWriter(s.getOutputStream());
-        br = new BufferedReader(reader);
-        bw = new BufferedWriter(writer);
-
         while (true) {
+
+            Socket s = server.accept(); // waits for connection from client
+
+            System.out.println("Client Connected");
+
+            reader = new InputStreamReader(s.getInputStream());
+            writer = new OutputStreamWriter(s.getOutputStream());
+            br = new BufferedReader(reader);
+            bw = new BufferedWriter(writer);
 
             bw.write("myftp>");
             bw.newLine();
@@ -64,7 +64,7 @@ public class myftpserver {
                 if (arr[1].equals("..")) {
                     System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
                 } else {
-                    System.setProperty("user.dir", path + "/" + arr[1]);
+                    System.setProperty("user.dir", path + "\\" + arr[1]);
                 }
                 bw.write("path" + System.getProperty("user.dir"));
                 bw.newLine();
@@ -89,7 +89,9 @@ public class myftpserver {
             }
 
             if (arr[0].equals("quit")) {
-
+                bw.write("Closing connection");
+                bw.newLine();
+                bw.flush();
             } // if
         } // while
 
@@ -162,6 +164,6 @@ public class myftpserver {
             System.out.println("No files found.");
         }
         return res;
-    } 
+    }
 
-} //myftpserver
+} // myftpserver
