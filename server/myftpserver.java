@@ -31,6 +31,7 @@ public class myftpserver {
         }
 
         ServerSocket server = new ServerSocket(port);
+        System.out.println("server running on ip: " + server.getInetAddress());
         System.out.println("server is now online running on port: " + port);
         Socket s = server.accept(); // waits for connection from client
         reader = new InputStreamReader(s.getInputStream());
