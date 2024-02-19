@@ -20,7 +20,7 @@ class myftp {
             System.exit(0);
         } // catch
 
-        Socket client = new Socket("localhost", port);
+        Socket client = new Socket(machineName, port);
         Scanner scanner = new Scanner(System.in);
 
         InputStreamReader reader = new InputStreamReader(client.getInputStream());

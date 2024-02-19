@@ -5,6 +5,8 @@ import java.net.*;
 import java.util.*;
 
 public class myftpserver {
+
+    protected static String server_IP ;
     public static void main(String[] args) throws Exception {
 
         Socket socket = null;
@@ -20,6 +22,13 @@ public class myftpserver {
             System.out.println("Invalid Port");
             System.exit(0);
         } // catch
+
+        try {
+            InetAddress iAddress = InetAddress.getLocalHost();
+            server_IP = iAddress.getHostAddress();
+            System.out.println("Server IP address : " +server_IP);
+        } catch (UnknownHostException e) {
+        }
 
         ServerSocket server = new ServerSocket(port);
         System.out.println("server is now online running on port: " + port);
