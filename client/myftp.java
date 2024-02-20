@@ -123,6 +123,7 @@ class myftp {
                 out.write(buffer, 0, bytesRead);
             }
         } // while
+        out.flush();
     }
     // myftp
 }
