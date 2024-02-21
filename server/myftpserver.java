@@ -39,10 +39,10 @@ public class myftpserver {
         br = new BufferedReader(reader);
         bw = new BufferedWriter(writer);
 
-        while (true) {
+        while (true) {  
 
             System.out.println("Client Connected");
-
+            Thread.sleep(1000);
             bw.write("myftp>");
             bw.newLine();
             bw.flush();
@@ -133,6 +133,7 @@ public class myftpserver {
             }
         } // while
         out.flush();
+        out.close();
     }
 
     /*
@@ -154,7 +155,7 @@ public class myftpserver {
         String delimiter = "\0";
         out.write(delimiter.getBytes());
         out.flush();
-        // s.shutdownOutput();
+        //s.shutdownOutput();
 
     } // get
 
