@@ -77,12 +77,12 @@ public class myftpserver {
      * 
      * I am unsure if multiple threads accessing the same variable is
      * a problem or not :/
+     * 
+     * TIP: do some reseach into ConcurrentHashMap
      */
     // creates a new thread
     public static void runNow(Runnable target) {
         Thread t = new Thread(target);
-        threadPool.put(threadID, t);
-        threadID++;
         t.start();
     }
 

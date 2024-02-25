@@ -1,6 +1,19 @@
 import java.io.*; 
 import java.net.*; 
 
+/** Some burning thoughts...
+ *  Here is an example of a typical progam life cycle:
+ *  Client runs the command $put file.txt & (this runs on another thread)
+ *  Server sees & and creates another thread for put
+ *  Client runs put again on a different file
+ *  but WAIT isn't it on the same output stream???
+ *  how does the server know what output to take from?
+ *  PROBLEM: there are 2 threads on client and server side
+ *  how do we correspond our output/input streams to the correct
+ *  threads 
+ *  I'm just gonna place put on different threads to see what happens :P
+ *  it broke..
+ */
 public class ClientHandler implements Runnable {
 
     private final Socket socket;
@@ -38,10 +51,22 @@ public class ClientHandler implements Runnable {
                     get(path + "\\" + arr[1], socket);
                 }
 
+                //TESTING HERE TOO
                 if (arr[0].equals("put")) {
                     String path = System.getProperty("user.dir");
-                    put(path + "\\" + arr[1], socket);
-                }
+                    if (arr.length == 3) { //meaning theres an &
+                        runNow(() -> {
+                            try {
+                                //all this is doing is placing put() on another thread
+                                put(path + "\\" + arr[1], socket);
+                            } catch (IOException e) { //i didnt change anything else
+                                e.printStackTrace();
+                            } //try
+                        }); 
+                    } else {
+                        put(path + "\\" + arr[1], socket);
+                    }
+                } //if
 
                 if (arr[0].equals("delete")) {
                     String path = System.getProperty("user.dir");
@@ -104,6 +129,7 @@ public class ClientHandler implements Runnable {
 
     } //run
 
+    //made changes to put for test
     private static void put(String destination, Socket s) throws IOException {
 
         InputStream in = s.getInputStream();
@@ -113,7 +139,7 @@ public class ClientHandler implements Runnable {
         final String delimiter = "\0"; // Define a delimiter
 
         // read and write to a file
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[32]; //<----changed for test
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
             sb.append(new String(buffer, 0, bytesRead));
@@ -123,6 +149,11 @@ public class ClientHandler implements Runnable {
                 break;
             } else {
                 out.write(buffer, 0, bytesRead);
+            }
+            try {
+                Thread.sleep(1000); //this might simulate a larger file
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         } // while
         out.flush();
@@ -175,4 +206,11 @@ public class ClientHandler implements Runnable {
         }
         return res;
     }
+
+    // creates a new thread
+    public static void runNow(Runnable target) {
+        Thread t = new Thread(target);
+        t.start();
+    } //runNow
+
 } //class

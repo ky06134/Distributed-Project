@@ -43,11 +43,23 @@ class myftp {
 
             if (arr[0].equals("get")) {
                 get(arr[1], client);
-            }
+            } //if
 
+            //LETS PUT IT TO THE TEST LOL
             if (arr[0].equals("put")) {
-                put(arr[1], client);
-            }
+                
+                if (arr.length == 3) { //meaning theres an &
+                    runNow(() -> {
+                        try {
+                            put(arr[1], client); //all this is doing is placing put() on another thread
+                        } catch (IOException e) { //i didnt change anything else
+                            e.printStackTrace();
+                        } //try
+                    }); 
+                } else {
+                    put(arr[1], client);
+                }
+            } //if
 
             if (arr[0].equals("delete")) {
 
@@ -81,9 +93,7 @@ class myftp {
         client.close();
     } // main
 
-    /*
-     * given a filepath and socket send the file over TCP socket
-     */
+    //made changes to put for test
     private static void put(String filepath, Socket s) throws FileNotFoundException, IOException {
 
         // read stream
@@ -92,15 +102,20 @@ class myftp {
         OutputStream out = s.getOutputStream();
 
         // read and send in chunks
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[32]; //<----changed for test
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
             out.write(buffer, 0, bytesRead);
+            try {
+                Thread.sleep(1000); //this might simulate a larger file
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         } // while
         String delimiter = "\0";
         out.write(delimiter.getBytes());
 
-    } // get
+    } //put
 
     private static void get(String destination, Socket s) throws IOException {
 
@@ -124,6 +139,11 @@ class myftp {
             }
         } // while
         out.flush();
+    } // get
+
+    // creates a new thread
+    public static void runNow(Runnable target) {
+        Thread t = new Thread(target);
+        t.start();
     }
-    // myftp
-}
+} //class
