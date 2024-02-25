@@ -1,18 +1,19 @@
-import java.io.*; 
-import java.net.*; 
+import java.io.*;
+import java.net.*;
 
-/** Some burning thoughts...
- *  Here is an example of a typical progam life cycle:
- *  Client runs the command $put file.txt & (this runs on another thread)
- *  Server sees & and creates another thread for put
- *  Client runs put again on a different file
- *  but WAIT isn't it on the same output stream???
- *  how does the server know what output to take from?
- *  PROBLEM: there are 2 threads on client and server side
- *  how do we correspond our output/input streams to the correct
- *  threads 
- *  I'm just gonna place put on different threads to see what happens :P
- *  it broke..
+/**
+ * Some burning thoughts...
+ * Here is an example of a typical progam life cycle:
+ * Client runs the command $put file.txt & (this runs on another thread)
+ * Server sees & and creates another thread for put
+ * Client runs put again on a different file
+ * but WAIT isn't it on the same output stream???
+ * how does the server know what output to take from?
+ * PROBLEM: there are 2 threads on client and server side
+ * how do we correspond our output/input streams to the correct
+ * threads
+ * I'm just gonna place put on different threads to see what happens :P
+ * it broke..
  */
 public class ClientHandler implements Runnable {
 
@@ -20,7 +21,7 @@ public class ClientHandler implements Runnable {
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
-    } //constructor
+    } // constructor
 
     public void run() {
         InputStreamReader reader = null;
@@ -29,7 +30,7 @@ public class ClientHandler implements Runnable {
         BufferedWriter bw = null;
 
         try {
-        
+
             reader = new InputStreamReader(socket.getInputStream());
             writer = new OutputStreamWriter(socket.getOutputStream());
             br = new BufferedReader(reader);
@@ -42,76 +43,84 @@ public class ClientHandler implements Runnable {
                 bw.flush();
 
                 String msgFromClient = br.readLine();
-                String arr[] = msgFromClient.split(" ");
+                String arr[] = msgFromClient.split(" & ");
+                for (String command : arr) {
+                    arr = command.split(" ");
+                }
 
                 System.out.println("The command is " + msgFromClient);
-
-                if (arr[0].equals("get")) {
-                    String path = System.getProperty("user.dir");
-                    get(path + "\\" + arr[1], socket);
+                for (String command : arr) {
+                    arr = command.split(" ");
                 }
 
-                //TESTING HERE TOO
-                if (arr[0].equals("put")) {
-                    String path = System.getProperty("user.dir");
-                    if (arr.length == 3) { //meaning theres an &
-                        runNow(() -> {
-                            try {
-                                //all this is doing is placing put() on another thread
-                                put(path + "\\" + arr[1], socket);
-                            } catch (IOException e) { //i didnt change anything else
-                                e.printStackTrace();
-                            } //try
-                        }); 
-                    } else {
-                        put(path + "\\" + arr[1], socket);
+                for (int i = 0; i < arr.length; i++) {
+                    if (arr[i].equals("get")) {
+                        String path = System.getProperty("user.dir");
+                        get(path + "/" + arr[i + 1], socket);
                     }
-                } //if
 
-                if (arr[0].equals("delete")) {
-                    String path = System.getProperty("user.dir");
-                    delete(path + "\\" + arr[1]);
-                }
+                    // TESTING HERE TOO
+                    if (arr[i].equals("put")) {
+                        String path = System.getProperty("user.dir");
+                        put(path + "/" + arr[i + 1], socket);
+                        // if (arr.length == 3) { // meaning theres an &
+                        // runNow(() -> {
+                        // try {
+                        // // all this is doing is placing put() on another thread
+                        // put(path + "/" + arr[1], socket);
+                        // } catch (IOException e) { // i didnt change anything else
+                        // e.printStackTrace();
+                        // } // try
+                        // });
+                        // } else {
+                        // put(path + "/" + arr[1], socket);
+                        // }
+                    } // if
 
-                if (arr[0].equals("cd")) {
-                    String path = System.getProperty("user.dir");
-                    if (arr[1].equals("..")) {
-                        System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
-                    } else {
-                        System.setProperty("user.dir", path + "\\" + arr[1]);
+                    if (arr[i].equals("delete")) {
+                        String path = System.getProperty("user.dir");
+                        delete(path + "/" + arr[i + 1]);
                     }
-                    bw.write(System.getProperty("user.dir"));
-                    bw.newLine();
-                    bw.flush();
-                }
+                    if (arr[i].equals("cd")) {
+                        String path = System.getProperty("user.dir");
+                        if (arr[i + 1].equals("..")) {
+                            System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
+                        } else {
+                            System.setProperty("user.dir", path + "/" + arr[i + 1]);
+                        }
+                        bw.write(System.getProperty("user.dir"));
+                        bw.newLine();
+                        bw.flush();
+                    }
 
-                if (arr[0].equals("mkdir")) {
-                    String path = System.getProperty("user.dir");
-                    makeDirectory(path + "\\" + arr[1]);
-                }
+                    if (arr[i].equals("mkdir")) {
+                        String path = System.getProperty("user.dir");
+                        makeDirectory(path + "/" + arr[i + 1]);
+                    }
 
-                if (arr[0].equals("pwd")) {
-                    String path = System.getProperty("user.dir");
-                    bw.write(path);
-                    bw.newLine();
-                    bw.flush();
-                }
+                    if (arr[i].equals("pwd")) {
+                        String path = System.getProperty("user.dir");
+                        bw.write(path);
+                        bw.newLine();
+                        bw.flush();
+                    }
 
-                if (arr[0].equals("ls")) {
-                    bw.write(listDirectory(System.getProperty("user.dir")));
-                    bw.newLine();
-                    bw.flush();
-                }
+                    if (arr[i].equals("ls")) {
+                        bw.write(listDirectory(System.getProperty("user.dir")));
+                        bw.newLine();
+                        bw.flush();
+                    }
 
-                if (arr[0].equals("quit")) {
-                    bw.write("Closing connection");
-                    bw.newLine();
-                    bw.flush();
-                    bw.close();
-                    br.close();
-                    socket.close();
-                } // if
-            } //while
+                    if (arr[i].equals("quit")) {
+                        bw.write("Closing connection");
+                        bw.newLine();
+                        bw.flush();
+                        bw.close();
+                        br.close();
+                        socket.close();
+                    } // if
+                } // for
+            } // while
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -124,12 +133,12 @@ public class ClientHandler implements Runnable {
                 socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
-            } //try
-        } //try
+            } // try
+        } // try
 
-    } //run
+    } // run
 
-    //made changes to put for test
+    // made changes to put for test
     private static void put(String destination, Socket s) throws IOException {
 
         InputStream in = s.getInputStream();
@@ -139,7 +148,7 @@ public class ClientHandler implements Runnable {
         final String delimiter = "\0"; // Define a delimiter
 
         // read and write to a file
-        byte[] buffer = new byte[32]; //<----changed for test
+        byte[] buffer = new byte[32]; // <----changed for test
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
             sb.append(new String(buffer, 0, bytesRead));
@@ -151,7 +160,7 @@ public class ClientHandler implements Runnable {
                 out.write(buffer, 0, bytesRead);
             }
             try {
-                Thread.sleep(1000); //this might simulate a larger file
+                Thread.sleep(1000); // this might simulate a larger file
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -179,7 +188,7 @@ public class ClientHandler implements Runnable {
         String delimiter = "\0";
         out.write(delimiter.getBytes());
         out.flush();
-        //s.shutdownOutput();
+        // s.shutdownOutput();
 
     } // get
 
@@ -211,6 +220,6 @@ public class ClientHandler implements Runnable {
     public static void runNow(Runnable target) {
         Thread t = new Thread(target);
         t.start();
-    } //runNow
+    } // runNow
 
-} //class
+} // class
