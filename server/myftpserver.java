@@ -34,6 +34,7 @@ public class myftpserver {
         System.out.println("server running on ip: " + server.getInetAddress());
         System.out.println("server is now online running on port: " + port);
         Socket s = server.accept(); // waits for connection from client
+        System.out.println("Client Connected");
         reader = new InputStreamReader(s.getInputStream());
         writer = new OutputStreamWriter(s.getOutputStream());
         br = new BufferedReader(reader);
@@ -41,7 +42,7 @@ public class myftpserver {
 
         while (true) {  
 
-            System.out.println("Client Connected");
+            
             Thread.sleep(1000);
             bw.write("myftp>");
             bw.newLine();
@@ -102,6 +103,7 @@ public class myftpserver {
                 bw.newLine();
                 bw.flush();
                 s = server.accept(); // waits for connection from client
+                System.out.println("Client Connected");
                 reader = new InputStreamReader(s.getInputStream());
                 writer = new OutputStreamWriter(s.getOutputStream());
                 br = new BufferedReader(reader);
