@@ -45,81 +45,91 @@ public class ClientHandler implements Runnable {
                 String msgFromClient = br.readLine();
                 String arr[] = msgFromClient.split(" & ");
                 for (String command : arr) {
-                    arr = command.split(" ");
+                    System.out.println(command);
                 }
 
                 System.out.println("The command is " + msgFromClient);
-                for (String command : arr) {
-                    arr = command.split(" ");
-                }
 
-                for (int i = 0; i < arr.length; i++) {
-                    if (arr[i].equals("get")) {
-                        String path = System.getProperty("user.dir");
-                        get(path + "/" + arr[i + 1], socket);
-                    }
+                // for (int i = 0; i < arr.length; i++) {
+                // if (arr[i].equals("get")) {
+                // String path = System.getProperty("user.dir");
+                // int value = i + 1;
+                // runNow(() -> {
+                // try {
+                // // all this is doing is placing put() on another thread
+                // get(path + "/" + arr[value], socket);
+                // } catch (IOException e) { // i didnt change anything else
+                // e.printStackTrace();
+                // } // try
+                // });
+                // }
 
-                    // TESTING HERE TOO
-                    if (arr[i].equals("put")) {
-                        String path = System.getProperty("user.dir");
-                        put(path + "/" + arr[i + 1], socket);
-                        // if (arr.length == 3) { // meaning theres an &
-                        // runNow(() -> {
-                        // try {
-                        // // all this is doing is placing put() on another thread
-                        // put(path + "/" + arr[1], socket);
-                        // } catch (IOException e) { // i didnt change anything else
-                        // e.printStackTrace();
-                        // } // try
-                        // });
-                        // } else {
-                        // put(path + "/" + arr[1], socket);
-                        // }
-                    } // if
+                // // TESTING HERE TOO
+                // if (arr[i].equals("put")) {
+                // String path = System.getProperty("user.dir");
+                // int value = i + 1;
+                // runNow(() -> {
+                // try {
+                // // all this is doing is placing put() on another thread
+                // put(path + "/" + arr[value], socket);
+                // } catch (IOException e) { // i didnt change anything else
+                // e.printStackTrace();
+                // } // try
+                // });
+                // } // if
 
-                    if (arr[i].equals("delete")) {
-                        String path = System.getProperty("user.dir");
-                        delete(path + "/" + arr[i + 1]);
-                    }
-                    if (arr[i].equals("cd")) {
-                        String path = System.getProperty("user.dir");
-                        if (arr[i + 1].equals("..")) {
-                            System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
-                        } else {
-                            System.setProperty("user.dir", path + "/" + arr[i + 1]);
-                        }
-                        bw.write(System.getProperty("user.dir"));
-                        bw.newLine();
-                        bw.flush();
-                    }
+                // if (arr[i].equals("delete")) {
+                // String path = System.getProperty("user.dir");
+                // int value = i + 1;
+                // runNow(() -> {
+                // try {
+                // // all this is doing is placing put() on another thread
+                // delete(path + "/" + arr[value]);
+                // } catch (IOException e) { // i didnt change anything else
+                // e.printStackTrace();
+                // } // try
+                // });
+                // }
+                // if (arr[i].equals("cd")) {
+                // String path = System.getProperty("user.dir");
+                // if (arr[i + 1].equals("..")) {
+                // System.setProperty("user.dir", new
+                // File(path).getParentFile().getAbsolutePath());
+                // } else {
+                // System.setProperty("user.dir", path + "/" + arr[i + 1]);
+                // }
+                // bw.write(System.getProperty("user.dir"));
+                // bw.newLine();
+                // bw.flush();
+                // }
 
-                    if (arr[i].equals("mkdir")) {
-                        String path = System.getProperty("user.dir");
-                        makeDirectory(path + "/" + arr[i + 1]);
-                    }
+                // if (arr[i].equals("mkdir")) {
+                // String path = System.getProperty("user.dir");
+                // makeDirectory(path + "/" + arr[i + 1]);
+                // }
 
-                    if (arr[i].equals("pwd")) {
-                        String path = System.getProperty("user.dir");
-                        bw.write(path);
-                        bw.newLine();
-                        bw.flush();
-                    }
+                // if (arr[i].equals("pwd")) {
+                // String path = System.getProperty("user.dir");
+                // bw.write(path);
+                // bw.newLine();
+                // bw.flush();
+                // }
 
-                    if (arr[i].equals("ls")) {
-                        bw.write(listDirectory(System.getProperty("user.dir")));
-                        bw.newLine();
-                        bw.flush();
-                    }
+                // if (arr[i].equals("ls")) {
+                // bw.write(listDirectory(System.getProperty("user.dir")));
+                // bw.newLine();
+                // bw.flush();
+                // }
 
-                    if (arr[i].equals("quit")) {
-                        bw.write("Closing connection");
-                        bw.newLine();
-                        bw.flush();
-                        bw.close();
-                        br.close();
-                        socket.close();
-                    } // if
-                } // for
+                // if (arr[i].equals("quit")) {
+                // bw.write("Closing connection");
+                // bw.newLine();
+                // bw.flush();
+                // bw.close();
+                // br.close();
+                // socket.close();
+                // } // if
+                // } // for
             } // while
 
         } catch (IOException e) {
