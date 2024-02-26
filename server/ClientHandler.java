@@ -55,45 +55,48 @@ public class ClientHandler implements Runnable {
                     int value = i + 1;
                     if (arr[i].equals("get")) {
                         String path = System.getProperty("user.dir");
-                        get(path + "/" + arr[value], socket);
-                        // runNow(() -> {
-                        // try {
-                        // // all this is doing is placing put() on another thread
                         // get(path + "/" + arr[value], socket);
-                        // } catch (IOException e) { // i didnt change anything else
-                        // e.printStackTrace();
-                        // } // try
-                        // });
+                        runNow(() -> {
+                            try {
+                                // all this is doing is placing put() on another thread
+                                get(path + "/" + arr[value], socket);
+                            } catch (IOException e) { // i didnt change anything else
+                                e.printStackTrace();
+                            } // try
+                        });
                     }
 
                     // TESTING HERE TOO
                     if (arr[i].equals("put")) {
                         String path = System.getProperty("user.dir");
-                        put(path + "/" + arr[value], socket);
-                        // runNow(() -> {
-                        // try {
-                        // // all this is doing is placing put() on another thread
                         // put(path + "/" + arr[value], socket);
-                        // } catch (IOException e) { // i didnt change anything else
-                        // e.printStackTrace();
-                        // } // try
-                        // });
+                        runNow(() -> {
+                            try {
+                                // all this is doing is placing put() on another thread
+                                put(path + "/" + arr[value], socket);
+                            } catch (IOException e) { // i didnt change anything else
+                                e.printStackTrace();
+                            } // try
+                        });
                     } // if
 
                     if (arr[i].equals("delete")) {
                         String path = System.getProperty("user.dir");
-                        delete(path + "/" + arr[value]);
-                        // runNow(() -> {
                         // delete(path + "/" + arr[value]);
-                        // });
+                        runNow(() -> {
+                            delete(path + "/" + arr[value]);
+                        });
                     }
                     if (arr[i].equals("cd")) {
                         String path = System.getProperty("user.dir");
-                        if (arr[value].equals("..")) {
-                            System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
-                        } else {
-                            System.setProperty("user.dir", path + "/" + arr[value]);
-                        }
+                        runNow(() -> {
+                            // all this is doing is placing put() on another thread
+                            if (arr[value].equals("..")) {
+                                System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
+                            } else {
+                                System.setProperty("user.dir", path + "/" + arr[value]);
+                            }
+                        });
                         bw.write(System.getProperty("user.dir"));
                         bw.newLine();
                         bw.flush();
@@ -101,10 +104,10 @@ public class ClientHandler implements Runnable {
 
                     if (arr[i].equals("mkdir")) {
                         String path = System.getProperty("user.dir");
-                        makeDirectory(path + "/" + arr[value]);
-                        // runNow(() -> {
                         // makeDirectory(path + "/" + arr[value]);
-                        // });
+                        runNow(() -> {
+                            makeDirectory(path + "/" + arr[value]);
+                        });
                     }
 
                     if (arr[i].equals("pwd")) {
