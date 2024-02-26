@@ -39,83 +39,84 @@ class myftp {
             bw.newLine();
             bw.flush();
 
-            String stringWithoutAmpersands = command.replaceAll(" &", "");
-            String arr[] = stringWithoutAmpersands.split(" ");
+            String arr[] = command.split(" ");
+            int n = arr.length;
+            boolean newThread = false;
+            if (arr[n - 1].equals("&")) {
+                newThread = true;
+            }
 
-            for (int i = 0; i < arr.length; i++) {
-                int value = i + 1;
-                if (arr[i].equals("get")) {
-                    get(arr[value], client);
-                    // runNow(() -> {
+            if (arr[0].equals("get")) {
+                get(arr[1], client);
+                // runNow(() -> {
+                // try {
+                // get(arr[1], client); // all this is doing is placing put() on another
+                // thread
+                // } catch (IOException e) { // i didnt change anything else
+                // e.printStackTrace();
+                // } // try
+                // });
+            } // if
+
+            // LETS PUT IT TO THE TEST LOL
+            if (arr[0].equals("put")) {
+                put(arr[1], client);
+                // runNow(() -> {
+                // try {
+                // put(arr[1], client); // all this is doing is placing put() on another
+                // thread
+                // } catch (IOException e) { // i didnt change anything else
+                // e.printStackTrace();
+                // } // try
+                // });
+            } // if
+
+            if (arr[0].equals("delete")) {
+                runNow(() -> {
                     // try {
-                    // get(arr[value], client); // all this is doing is placing put() on another
-                    // thread
                     // } catch (IOException e) { // i didnt change anything else
                     // e.printStackTrace();
                     // } // try
-                    // });
-                } // if
+                });
+            }
 
-                // LETS PUT IT TO THE TEST LOL
-                if (arr[i].equals("put")) {
-                    put(arr[value], client);
-                    // runNow(() -> {
-                    // try {
-                    // put(arr[value], client); // all this is doing is placing put() on another
-                    // thread
-                    // } catch (IOException e) { // i didnt change anything else
-                    // e.printStackTrace();
-                    // } // try
-                    // });
-                } // if
+            if (arr[0].equals("ls")) {
+                final String s = br.readLine();
+                System.out.println(s);
+                // runNow(() -> {
+                // System.out.println(s);
+                // });
+            }
 
-                if (arr[i].equals("delete")) {
-                    runNow(() -> {
-                        // try {
-                        // } catch (IOException e) { // i didnt change anything else
-                        // e.printStackTrace();
-                        // } // try
-                    });
-                }
+            if (arr[0].equals("cd")) {
+                final String s = br.readLine();
+                System.out.println(s);
+                // runNow(() -> {
+                // System.out.println(s);
+                // });
+            }
 
-                if (arr[i].equals("ls")) {
-                    final String s = br.readLine();
-                    System.out.println(s);
-                    // runNow(() -> {
-                    // System.out.println(s);
-                    // });
-                }
+            if (arr[0].equals("mkdir")) {
 
-                if (arr[i].equals("cd")) {
-                    final String s = br.readLine();
-                    System.out.println(s);
-                    // runNow(() -> {
-                    // System.out.println(s);
-                    // });
-                }
+            }
 
-                if (arr[i].equals("mkdir")) {
+            if (arr[0].equals("pwd")) {
+                final String s = br.readLine();
+                System.out.println(s);
+                // runNow(() -> {
+                // System.out.println(s);
+                // });
+            }
 
-                }
-
-                if (arr[i].equals("pwd")) {
-                    final String s = br.readLine();
-                    System.out.println(s);
-                    // runNow(() -> {
-                    // System.out.println(s);
-                    // });
-                }
-
-                if (arr[i].equals("quit")) {
-                    final String s = br.readLine();
-                    System.out.println(s);
-                    // runNow(() -> {
-                    // System.out.println(s);
-                    // });
-                    client.close();
-                    break;
-                } // if
-            } // for
+            if (arr[0].equals("quit")) {
+                final String s = br.readLine();
+                System.out.println(s);
+                // runNow(() -> {
+                // System.out.println(s);
+                // });
+                client.close();
+                break;
+            } // if
         } // while
     } // main
 
