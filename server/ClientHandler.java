@@ -45,53 +45,54 @@ public class ClientHandler implements Runnable {
                 String msgFromClient = br.readLine();
                 String stringWithoutAmpersands = msgFromClient.replaceAll(" &", "");
                 String arr[] = stringWithoutAmpersands.split(" ");
-                for (String command : arr) {
-                    System.out.println(command);
-                }
+                // for (String command : arr) {
+                // System.out.println(command);
+                // }
 
                 System.out.println("The command is " + msgFromClient);
 
                 for (int i = 0; i < arr.length; i++) {
+                    int value = i + 1;
                     if (arr[i].equals("get")) {
                         String path = System.getProperty("user.dir");
-                        int value = i + 1;
-                        runNow(() -> {
-                            try {
-                                // all this is doing is placing put() on another thread
-                                get(path + "/" + arr[value], socket);
-                            } catch (IOException e) { // i didnt change anything else
-                                e.printStackTrace();
-                            } // try
-                        });
+                        get(path + "/" + arr[value], socket);
+                        // runNow(() -> {
+                        // try {
+                        // // all this is doing is placing put() on another thread
+                        // get(path + "/" + arr[value], socket);
+                        // } catch (IOException e) { // i didnt change anything else
+                        // e.printStackTrace();
+                        // } // try
+                        // });
                     }
 
                     // TESTING HERE TOO
                     if (arr[i].equals("put")) {
                         String path = System.getProperty("user.dir");
-                        int value = i + 1;
-                        runNow(() -> {
-                            try {
-                                // all this is doing is placing put() on another thread
-                                put(path + "/" + arr[value], socket);
-                            } catch (IOException e) { // i didnt change anything else
-                                e.printStackTrace();
-                            } // try
-                        });
+                        put(path + "/" + arr[value], socket);
+                        // runNow(() -> {
+                        // try {
+                        // // all this is doing is placing put() on another thread
+                        // put(path + "/" + arr[value], socket);
+                        // } catch (IOException e) { // i didnt change anything else
+                        // e.printStackTrace();
+                        // } // try
+                        // });
                     } // if
 
                     if (arr[i].equals("delete")) {
                         String path = System.getProperty("user.dir");
-                        int value = i + 1;
-                        runNow(() -> {
-                            delete(path + "/" + arr[value]);
-                        });
+                        delete(path + "/" + arr[value]);
+                        // runNow(() -> {
+                        // delete(path + "/" + arr[value]);
+                        // });
                     }
                     if (arr[i].equals("cd")) {
                         String path = System.getProperty("user.dir");
-                        if (arr[i + 1].equals("..")) {
+                        if (arr[value].equals("..")) {
                             System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
                         } else {
-                            System.setProperty("user.dir", path + "/" + arr[i + 1]);
+                            System.setProperty("user.dir", path + "/" + arr[value]);
                         }
                         bw.write(System.getProperty("user.dir"));
                         bw.newLine();
@@ -100,10 +101,10 @@ public class ClientHandler implements Runnable {
 
                     if (arr[i].equals("mkdir")) {
                         String path = System.getProperty("user.dir");
-                        int value = i + 1;
-                        runNow(() -> {
-                            makeDirectory(path + "/" + arr[value]);
-                        });
+                        makeDirectory(path + "/" + arr[value]);
+                        // runNow(() -> {
+                        // makeDirectory(path + "/" + arr[value]);
+                        // });
                     }
 
                     if (arr[i].equals("pwd")) {

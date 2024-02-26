@@ -43,27 +43,30 @@ class myftp {
             String arr[] = stringWithoutAmpersands.split(" ");
 
             for (int i = 0; i < arr.length; i++) {
+                int value = i + 1;
                 if (arr[i].equals("get")) {
-                    int value = i + 1;
-                    runNow(() -> {
-                        try {
-                            get(arr[value], client); // all this is doing is placing put() on another thread
-                        } catch (IOException e) { // i didnt change anything else
-                            e.printStackTrace();
-                        } // try
-                    });
+                    get(arr[value], client);
+                    // runNow(() -> {
+                    // try {
+                    // get(arr[value], client); // all this is doing is placing put() on another
+                    // thread
+                    // } catch (IOException e) { // i didnt change anything else
+                    // e.printStackTrace();
+                    // } // try
+                    // });
                 } // if
 
                 // LETS PUT IT TO THE TEST LOL
                 if (arr[i].equals("put")) {
-                    int value = i + 1;
-                    runNow(() -> {
-                        try {
-                            put(arr[value], client); // all this is doing is placing put() on another thread
-                        } catch (IOException e) { // i didnt change anything else
-                            e.printStackTrace();
-                        } // try
-                    });
+                    put(arr[value], client);
+                    // runNow(() -> {
+                    // try {
+                    // put(arr[value], client); // all this is doing is placing put() on another
+                    // thread
+                    // } catch (IOException e) { // i didnt change anything else
+                    // e.printStackTrace();
+                    // } // try
+                    // });
                 } // if
 
                 if (arr[i].equals("delete")) {
@@ -77,16 +80,18 @@ class myftp {
 
                 if (arr[i].equals("ls")) {
                     final String s = br.readLine();
-                    runNow(() -> {
-                        System.out.println(s);
-                    });
+                    System.out.println(s);
+                    // runNow(() -> {
+                    // System.out.println(s);
+                    // });
                 }
 
                 if (arr[i].equals("cd")) {
                     final String s = br.readLine();
-                    runNow(() -> {
-                        System.out.println(s);
-                    });
+                    System.out.println(s);
+                    // runNow(() -> {
+                    // System.out.println(s);
+                    // });
                 }
 
                 if (arr[i].equals("mkdir")) {
@@ -95,17 +100,20 @@ class myftp {
 
                 if (arr[i].equals("pwd")) {
                     final String s = br.readLine();
-                    runNow(() -> {
-                        System.out.println(s);
-                    });
+                    System.out.println(s);
+                    // runNow(() -> {
+                    // System.out.println(s);
+                    // });
                 }
 
                 if (arr[i].equals("quit")) {
                     final String s = br.readLine();
-                    runNow(() -> {
-                        System.out.println(s);
-                    });
+                    System.out.println(s);
+                    // runNow(() -> {
+                    // System.out.println(s);
+                    // });
                     client.close();
+                    break;
                 } // if
             } // for
         } // while
