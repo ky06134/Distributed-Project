@@ -39,61 +39,79 @@ class myftp {
             bw.newLine();
             bw.flush();
 
-            String arr[] = command.split(" ");
+            String stringWithoutAmpersands = command.replaceAll(" &", "");
+            String arr[] = stringWithoutAmpersands.split(" ");
 
-            if (arr[0].equals("get")) {
-                get(arr[1], client);
-            } //if
-
-            //LETS PUT IT TO THE TEST LOL
-            if (arr[0].equals("put")) {
-                
-                if (arr.length == 3) { //meaning theres an &
+            for (int i = 0; i < arr.length; i++) {
+                if (arr[i].equals("get")) {
+                    int value = i + 1;
                     runNow(() -> {
                         try {
-                            put(arr[1], client); //all this is doing is placing put() on another thread
-                        } catch (IOException e) { //i didnt change anything else
+                            get(arr[value], client); // all this is doing is placing put() on another thread
+                        } catch (IOException e) { // i didnt change anything else
                             e.printStackTrace();
-                        } //try
-                    }); 
-                } else {
-                    put(arr[1], client);
+                        } // try
+                    });
+                } // if
+
+                // LETS PUT IT TO THE TEST LOL
+                if (arr[i].equals("put")) {
+                    int value = i + 1;
+                    runNow(() -> {
+                        try {
+                            put(arr[value], client); // all this is doing is placing put() on another thread
+                        } catch (IOException e) { // i didnt change anything else
+                            e.printStackTrace();
+                        } // try
+                    });
+                } // if
+
+                if (arr[i].equals("delete")) {
+                    runNow(() -> {
+                        // try {
+                        // } catch (IOException e) { // i didnt change anything else
+                        // e.printStackTrace();
+                        // } // try
+                    });
                 }
-            } //if
 
-            if (arr[0].equals("delete")) {
+                if (arr[i].equals("ls")) {
+                    final String s = br.readLine();
+                    runNow(() -> {
+                        System.out.println(s);
+                    });
+                }
 
-            }
+                if (arr[i].equals("cd")) {
+                    final String s = br.readLine();
+                    runNow(() -> {
+                        System.out.println(s);
+                    });
+                }
 
-            if (arr[0].equals("ls")) {
-                serverMsg = br.readLine();
-                System.out.println(serverMsg);
-            }
+                if (arr[i].equals("mkdir")) {
 
-            if (arr[0].equals("cd")) {
-                serverMsg = br.readLine();
-                System.out.println(serverMsg);
-            }
+                }
 
-            if (arr[0].equals("mkdir")) {
+                if (arr[i].equals("pwd")) {
+                    final String s = br.readLine();
+                    runNow(() -> {
+                        System.out.println(s);
+                    });
+                }
 
-            }
-
-            if (arr[0].equals("pwd")) {
-                serverMsg = br.readLine();
-                System.out.println(serverMsg);
-            }
-
-            if (arr[0].equals("quit")) {
-                serverMsg = br.readLine();
-                System.out.println(serverMsg);
-                break;
-            } // if
+                if (arr[i].equals("quit")) {
+                    final String s = br.readLine();
+                    runNow(() -> {
+                        System.out.println(s);
+                    });
+                    client.close();
+                } // if
+            } // for
         } // while
-        client.close();
     } // main
 
-    //made changes to put for test
+    // made changes to put for test
     private static void put(String filepath, Socket s) throws FileNotFoundException, IOException {
 
         // read stream
@@ -102,12 +120,12 @@ class myftp {
         OutputStream out = s.getOutputStream();
 
         // read and send in chunks
-        byte[] buffer = new byte[32]; //<----changed for test
+        byte[] buffer = new byte[32]; // <----changed for test
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
             out.write(buffer, 0, bytesRead);
             try {
-                Thread.sleep(1000); //this might simulate a larger file
+                Thread.sleep(1000); // this might simulate a larger file
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -115,7 +133,7 @@ class myftp {
         String delimiter = "\0";
         out.write(delimiter.getBytes());
 
-    } //put
+    } // put
 
     private static void get(String destination, Socket s) throws IOException {
 
@@ -146,4 +164,4 @@ class myftp {
         Thread t = new Thread(target);
         t.start();
     }
-} //class
+} // class
