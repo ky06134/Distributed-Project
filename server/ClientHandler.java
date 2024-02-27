@@ -44,7 +44,6 @@ public class ClientHandler implements Runnable {
                 bw.newLine();
                 bw.flush();
 
-                System.out.println(isListening);
                 String msgFromClient = isListening ? br.readLine() : command; 
 
                 String arr[] = msgFromClient.split(" ");
@@ -73,7 +72,6 @@ public class ClientHandler implements Runnable {
                 // TESTING HERE TOO
                 if (arr[0].equals("put")) {
                     String path = System.getProperty("user.dir");
-                    System.out.println("New thread = " + newThread);
                     if (newThread) {
                         setListening(false);
                         runNow(() -> {
@@ -82,7 +80,6 @@ public class ClientHandler implements Runnable {
                                 //isListening = false;
                                 put(path + "/" + arr[1], socket);
                                 setListening(true);
-                                System.out.println("Thread END");
                             } catch (IOException e) { // i didnt change anything else
                                 e.printStackTrace();
                             } 
@@ -209,10 +206,11 @@ public class ClientHandler implements Runnable {
                 //"|get file1.txt &          " 
                 String cmd = sb.toString().trim();
                 cmd = cmd.substring(1, cmd.length());
+                System.out.println(cmd);
                 setCommand(cmd);
             } else if (sb.toString().contains(delimiter)) {
-                int delimIndex = sb.indexOf(delimiter) - 1;
-                out.write(buffer, 0, delimIndex);
+                //int delimIndex = sb.indexOf(delimiter) - 1;
+                out.write(buffer, 0, bytesRead - 1);
                 break;
             } else {
                 out.write(buffer, 0, bytesRead);
