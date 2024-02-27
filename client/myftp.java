@@ -7,6 +7,9 @@ import java.util.Scanner;
 // Client class 
 class myftp {
 
+    private static String command = "";
+    private static boolean isListening = true;
+
     public static void main(String[] args) throws IOException {
 
         Integer port = 0;
@@ -33,13 +36,24 @@ class myftp {
 
             String serverMsg = br.readLine();
             System.out.print(serverMsg);
-            String command = scanner.nextLine();
+            String cmd = scanner.nextLine();
 
-            bw.write(command);
+            if (!isListening) {
+                int byteSize = 32;
+                int lenAdd = byteSize - cmd.length() - 1;
+                String filler = "";
+                for (int i = 0; i < lenAdd; i++) {
+                    filler += " ";
+                } //for
+                cmd = "|" + cmd; 
+                cmd += filler;
+            } //if
+            
+            bw.write(cmd);
             bw.newLine();
             bw.flush();
 
-            String arr[] = command.split(" ");
+            String arr[] = cmd.split(" ");
             int n = arr.length;
             boolean newThread = false;
             if (arr[n - 1].equals("&")) {
@@ -60,15 +74,21 @@ class myftp {
 
             // LETS PUT IT TO THE TEST LOL
             if (arr[0].equals("put")) {
-                put(arr[1], client);
-                // runNow(() -> {
-                // try {
-                // put(arr[1], client); // all this is doing is placing put() on another
-                // thread
-                // } catch (IOException e) { // i didnt change anything else
-                // e.printStackTrace();
-                // } // try
-                // });
+                if (newThread) {
+                    
+                    runNow(() -> {
+                        try {
+                            setListening(false);
+                            put(arr[1], client); // all this is doing is placing put() on another thread
+                            setListening(true);
+                        } catch (IOException e) { // i didnt change anything else
+                            e.printStackTrace();
+                        } // try
+                    });
+                } else {
+                    put(arr[1], client);
+                } //if
+                
             } // if
 
             if (arr[0].equals("delete")) {
@@ -128,13 +148,19 @@ class myftp {
         InputStream in = new FileInputStream(file);
         OutputStream out = s.getOutputStream();
 
-        // read and send in chunks
-        byte[] buffer = new byte[32]; // <----changed for test
-        int bytesRead;
+        //command 16 + 16 "|get file1.txt &                            "
+        //lenAdd = 32 - command.len
+        //command + lenAdd = 32
+        // 32 32 32 7 
+        //
+        byte[] buffer = new byte[32]; // <----changed for test 
+        int bytesRead; //length command get file1.txt &
         while ((bytesRead = in.read(buffer)) != -1) {
             out.write(buffer, 0, bytesRead);
+            //buffer = command
+            //out.write(buffer, 0, 32);
             try {
-                Thread.sleep(1000); // this might simulate a larger file
+                Thread.sleep(500); // this might simulate a larger file
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -172,5 +198,13 @@ class myftp {
     public static void runNow(Runnable target) {
         Thread t = new Thread(target);
         t.start();
+    }
+
+    public static void setCommand(String s) {
+        myftp.command = s;
+    } //setCommand
+
+    public static void setListening(boolean isListening) {
+        myftp.isListening = isListening;
     }
 } // class

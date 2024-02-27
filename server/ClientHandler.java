@@ -18,6 +18,8 @@ import java.net.*;
 public class ClientHandler implements Runnable {
 
     private final Socket socket;
+    private static boolean isListening = true;
+    private static String command = "";
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -42,7 +44,9 @@ public class ClientHandler implements Runnable {
                 bw.newLine();
                 bw.flush();
 
-                String msgFromClient = br.readLine();
+                System.out.println(isListening);
+                String msgFromClient = isListening ? br.readLine() : command; 
+
                 String arr[] = msgFromClient.split(" ");
                 int n = arr.length;
                 boolean newThread = false;
@@ -62,21 +66,31 @@ public class ClientHandler implements Runnable {
                         } catch (IOException e) { // i didnt change anything else
                             e.printStackTrace();
                         } // try
+                    //runNow(new Worker())
                     });
                 }
 
                 // TESTING HERE TOO
                 if (arr[0].equals("put")) {
                     String path = System.getProperty("user.dir");
-                    // put(path + "/" + arr[1], socket);
-                    runNow(() -> {
-                        try {
-                            // all this is doing is placing put() on another thread
-                            put(path + "/" + arr[1], socket);
-                        } catch (IOException e) { // i didnt change anything else
-                            e.printStackTrace();
-                        } // try
-                    });
+                    System.out.println("New thread = " + newThread);
+                    if (newThread) {
+                        setListening(false);
+                        runNow(() -> {
+                            try {
+                                // all this is doing is placing put() on another thread
+                                //isListening = false;
+                                put(path + "/" + arr[1], socket);
+                                setListening(true);
+                                System.out.println("Thread END");
+                            } catch (IOException e) { // i didnt change anything else
+                                e.printStackTrace();
+                            } 
+                        });
+                    } else {
+                        put(path + "/" + arr[1], socket);
+                    } //if
+                    
                 } // if
 
                 if (arr[0].equals("delete")) {
@@ -95,6 +109,7 @@ public class ClientHandler implements Runnable {
                         } else {
                             System.setProperty("user.dir", path + "/" + arr[1]);
                         }
+                    
                     });
                     bw.write(System.getProperty("user.dir"));
                     bw.newLine();
@@ -149,13 +164,15 @@ public class ClientHandler implements Runnable {
     } // run
 
     // made changes to put for test
-    private static void put(String destination, Socket s) throws IOException {
+    private synchronized static void put(String destination, Socket s) throws IOException {
 
         InputStream in = s.getInputStream();
         OutputStream out = new FileOutputStream(destination);
         StringBuilder sb = new StringBuilder();
 
         final String delimiter = "\0"; // Define a delimiter
+        // final String delimiter2 = "|";
+        // String command = "";
 
         // read and write to a file
         byte[] buffer = new byte[32]; // <----changed for test
@@ -163,14 +180,45 @@ public class ClientHandler implements Runnable {
         while ((bytesRead = in.read(buffer)) != -1) {
             sb.append(new String(buffer, 0, bytesRead));
 
-            if (sb.toString().contains(delimiter)) {
-                out.write(buffer, 0, bytesRead - 1);
+            // if (sb.toString().contains(delimiter2) && sb.toString().contains(delimiter)) {
+            //     int delimIndex = sb.indexOf(delimiter) - 1;
+            //     out.write(buffer, 0, delimIndex);
+                
+            // } else if (sb.toString().contains(delimiter2)) {
+            //     int start = sb.indexOf(delimiter2);
+            //     out.write(buffer, 0, start - 1);
+            //     int end = sb.indexOf(delimiter2, start);
+            //     if (end == -1) {
+            //         command = sb.toString().substring(start, sb.length());
+            //         bytesRead = in.read(buffer);
+            //         sb.append(new String(buffer, 0, bytesRead));
+            //         start = sb.indexOf(delimiter2);
+            //         command += sb.toString().substring(0, start + 1);
+            //         if (sb.toString().contains(delimiter2) && sb.toString().contains(delimiter)) {
+            //             out.write(buffer, start + 1, bytesRead - 1);
+            //             break;
+            //         } else {
+            //             out.write(buffer, start + 1, bytesRead);
+            //         } //if
+            //     } else {
+            //         command = sb.toString().substring(start, end + 1);
+            //         out.write(buffer, end + 1, bytesRead);
+            //     }
+            // }
+            if (sb.toString().contains("|")) {
+                //"|get file1.txt &          " 
+                String cmd = sb.toString().trim();
+                cmd = cmd.substring(1, cmd.length());
+                setCommand(cmd);
+            } else if (sb.toString().contains(delimiter)) {
+                int delimIndex = sb.indexOf(delimiter) - 1;
+                out.write(buffer, 0, delimIndex);
                 break;
             } else {
                 out.write(buffer, 0, bytesRead);
             }
             try {
-                Thread.sleep(1000); // this might simulate a larger file
+                Thread.sleep(500); // this might simulate a larger file
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -231,5 +279,14 @@ public class ClientHandler implements Runnable {
         Thread t = new Thread(target);
         t.start();
     } // runNow
+
+    public static void setListening(boolean b) {
+        ClientHandler.isListening = b;
+        System.out.println("b = " + b);
+    }
+
+    public static void setCommand(String s) {
+        ClientHandler.command = s;
+    } //setCommand
 
 } // class
