@@ -41,11 +41,12 @@ public class ClientHandler implements Runnable {
             br = new BufferedReader(reader);
             bw = new BufferedWriter(writer);
 
+            bw.write("myftp>");
+            bw.newLine();
+            bw.flush();
+
             while (true) {
                 Thread.sleep(1000);
-                bw.write("myftp>");
-                bw.newLine();
-                bw.flush();
 
                 String msgFromClient;
                 msgFromClient = isListening ? br.readLine() : command;
@@ -60,22 +61,36 @@ public class ClientHandler implements Runnable {
 
                 if (arr[0].equals("get")) {
                     String path = System.getProperty("user.dir");
-                    // get(path + "/" + arr[1], socket);
-                    runNow(() -> {
-                        try {
-                            // all this is doing is placing put() on another thread
-                            get(path + "/" + arr[1], socket);
-                        } catch (IOException e) { // i didnt change anything else
-                            e.printStackTrace();
-                        } // try
-                          // runNow(new Worker())
-                    });
+                    if (newThread) {
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                        setListening(false);
+                        runNow(() -> {
+                            try {
+                                // all this is doing is placing put() on another thread
+                                // isListening = false;
+                                get(path + "/" + arr[1], socket);
+                                setListening(true);
+                            } catch (IOException e) { // i didnt change anything else
+                                e.printStackTrace();
+                            }
+                        });
+                    } else {
+                        get(path + "/" + arr[1], socket);
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                    } // if
                 }
 
                 // TESTING HERE TOO
                 if (arr[0].equals("put")) {
                     String path = System.getProperty("user.dir");
                     if (newThread) {
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
                         setListening(false);
                         runNow(() -> {
                             try {
@@ -89,28 +104,55 @@ public class ClientHandler implements Runnable {
                         });
                     } else {
                         put(path + "/" + arr[1], socket);
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
                     } // if
-
                 } // if
 
                 if (arr[0].equals("delete")) {
                     String path = System.getProperty("user.dir");
-                    // delete(path + "/" + arr[1]);
-                    runNow(() -> {
+                    if (newThread) {
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                        setListening(false);
+                        runNow(() -> {
+                            delete(path + "/" + arr[1]);
+                            setListening(true);
+                        });
+                    } else {
                         delete(path + "/" + arr[1]);
-                    });
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                    } // if
                 }
                 if (arr[0].equals("cd")) {
                     String path = System.getProperty("user.dir");
-                    runNow(() -> {
-                        // all this is doing is placing put() on another thread
+                    if (newThread) {
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                        setListening(false);
+                        runNow(() -> {
+                            if (arr[1].equals("..")) {
+                                System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
+                            } else {
+                                System.setProperty("user.dir", path + "/" + arr[1]);
+                            }
+                            setListening(true);
+                        });
+                    } else {
                         if (arr[1].equals("..")) {
                             System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
                         } else {
                             System.setProperty("user.dir", path + "/" + arr[1]);
                         }
-
-                    });
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                    } // if
                     bw.write(System.getProperty("user.dir"));
                     bw.newLine();
                     bw.flush();
@@ -118,23 +160,86 @@ public class ClientHandler implements Runnable {
 
                 if (arr[0].equals("mkdir")) {
                     String path = System.getProperty("user.dir");
-                    // makeDirectory(path + "/" + arr[1]);
-                    runNow(() -> {
+                    if (newThread) {
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                        setListening(false);
+                        runNow(() -> {
+                            makeDirectory(path + "/" + arr[1]);
+                            setListening(true);
+                        });
+                    } else {
                         makeDirectory(path + "/" + arr[1]);
-                    });
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                    } // if
                 }
 
                 if (arr[0].equals("pwd")) {
                     String path = System.getProperty("user.dir");
-                    bw.write(path);
-                    bw.newLine();
-                    bw.flush();
+                    final BufferedWriter finalBw = bw;
+                    if (newThread) {
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                        setListening(false);
+                        runNow(() -> {
+                            try {
+                                // all this is doing is placing put() on another thread
+                                // isListening = false;
+                                finalBw.write(path);
+                                finalBw.newLine();
+                                finalBw.flush();
+                                finalBw.write("myftp>");
+                                finalBw.newLine();
+                                finalBw.flush();
+                                setListening(true);
+                            } catch (IOException e) { // i didnt change anything else
+                                e.printStackTrace();
+                            }
+                        });
+                    } else {
+                        bw.write(path);
+                        bw.newLine();
+                        bw.flush();
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                    } // if
                 }
 
                 if (arr[0].equals("ls")) {
-                    bw.write(listDirectory(System.getProperty("user.dir")));
-                    bw.newLine();
-                    bw.flush();
+                    if (newThread) {
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                        final BufferedWriter finalBw = bw;
+                        setListening(false);
+                        runNow(() -> {
+                            try {
+                                // all this is doing is placing put() on another thread
+                                // isListening = false;
+                                finalBw.write(listDirectory(System.getProperty("user.dir")));
+                                finalBw.newLine();
+                                finalBw.flush();
+                                finalBw.write("myftp>");
+                                finalBw.newLine();
+                                finalBw.flush();
+                                setListening(true);
+                            } catch (IOException e) { // i didnt change anything else
+                                e.printStackTrace();
+                            }
+                        });
+                    } else {
+                        bw.write(listDirectory(System.getProperty("user.dir")));
+                        bw.newLine();
+                        bw.flush();
+                        bw.write("myftp>");
+                        bw.newLine();
+                        bw.flush();
+                    } // if
                 }
 
                 if (arr[0].equals("quit")) {
