@@ -1,5 +1,8 @@
 import java.io.*;
 import java.net.*;
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 /**
  * Some burning thoughts...
@@ -40,13 +43,13 @@ public class ClientHandler implements Runnable {
 
             while (true) {
                 Thread.sleep(1000);
-                if (isListening) {
-                    bw.write("myftp>");
-                    bw.newLine();
-                    bw.flush();
-                }
+                bw.write("myftp>");
+                bw.newLine();
+                bw.flush();
 
-                String msgFromClient = isListening ? br.readLine() : command;
+                String msgFromClient;
+                msgFromClient = isListening ? br.readLine() : command;
+                System.out.println("The command is " + msgFromClient);
 
                 String arr[] = msgFromClient.split(" ");
                 int n = arr.length;
@@ -54,8 +57,6 @@ public class ClientHandler implements Runnable {
                 if (arr[n - 1].equals("&")) {
                     newThread = true;
                 }
-
-                System.out.println("The command is " + msgFromClient);
 
                 if (arr[0].equals("get")) {
                     String path = System.getProperty("user.dir");
