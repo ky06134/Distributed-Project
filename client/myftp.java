@@ -44,11 +44,11 @@ class myftp {
                 String filler = "";
                 for (int i = 0; i < lenAdd; i++) {
                     filler += " ";
-                } //for
-                cmd = "|" + cmd; 
+                } // for
+                cmd = "|" + cmd;
                 cmd += filler;
-            } //if
-            
+            } // if
+
             bw.write(cmd);
             bw.newLine();
             bw.flush();
@@ -75,20 +75,21 @@ class myftp {
             // LETS PUT IT TO THE TEST LOL
             if (arr[0].equals("put")) {
                 if (newThread) {
-                    
+                    setListening(false);
                     runNow(() -> {
                         try {
-                            setListening(false);
-                            put(arr[1], client); // all this is doing is placing put() on another thread
+                            // all this is doing is placing put() on another thread
+                            // isListening = false;
+                            put(arr[1], client);
                             setListening(true);
                         } catch (IOException e) { // i didnt change anything else
                             e.printStackTrace();
-                        } // try
+                        }
                     });
                 } else {
                     put(arr[1], client);
-                } //if
-                
+                } // if
+
             } // if
 
             if (arr[0].equals("delete")) {
@@ -101,7 +102,7 @@ class myftp {
             }
 
             if (arr[0].equals("ls")) {
-                final String s = br.readLine();
+                String s = br.readLine();
                 System.out.println(s);
                 // runNow(() -> {
                 // System.out.println(s);
@@ -109,7 +110,7 @@ class myftp {
             }
 
             if (arr[0].equals("cd")) {
-                final String s = br.readLine();
+                String s = br.readLine();
                 System.out.println(s);
                 // runNow(() -> {
                 // System.out.println(s);
@@ -121,7 +122,7 @@ class myftp {
             }
 
             if (arr[0].equals("pwd")) {
-                final String s = br.readLine();
+                String s = br.readLine();
                 System.out.println(s);
                 // runNow(() -> {
                 // System.out.println(s);
@@ -129,7 +130,7 @@ class myftp {
             }
 
             if (arr[0].equals("quit")) {
-                final String s = br.readLine();
+                String s = br.readLine();
                 System.out.println(s);
                 // runNow(() -> {
                 // System.out.println(s);
@@ -148,19 +149,19 @@ class myftp {
         InputStream in = new FileInputStream(file);
         OutputStream out = s.getOutputStream();
 
-        //command 16 + 16 "|get file1.txt &                            "
-        //lenAdd = 32 - command.len
-        //command + lenAdd = 32
-        // 32 32 32 7 
+        // command 16 + 16 "|get file1.txt & "
+        // lenAdd = 32 - command.len
+        // command + lenAdd = 32
+        // 32 32 32 7
         //
-        byte[] buffer = new byte[32]; // <----changed for test 
-        int bytesRead; //length command get file1.txt &
+        byte[] buffer = new byte[32]; // <----changed for test
+        int bytesRead; // length command get file1.txt &
         while ((bytesRead = in.read(buffer)) != -1) {
             out.write(buffer, 0, bytesRead);
-            //buffer = command
-            //out.write(buffer, 0, 32);
+            // buffer = command
+            // out.write(buffer, 0, 32);
             try {
-                Thread.sleep(500); // this might simulate a larger file
+                Thread.sleep(1); // this might simulate a larger file
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -202,7 +203,7 @@ class myftp {
 
     public static void setCommand(String s) {
         myftp.command = s;
-    } //setCommand
+    } // setCommand
 
     public static void setListening(boolean isListening) {
         myftp.isListening = isListening;
