@@ -161,7 +161,7 @@ class myftp {
             // buffer = command
             // out.write(buffer, 0, 32);
             try {
-                Thread.sleep(1); // this might simulate a larger file
+                Thread.sleep(100); // this might simulate a larger file
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

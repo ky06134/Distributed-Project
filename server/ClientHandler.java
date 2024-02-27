@@ -40,9 +40,11 @@ public class ClientHandler implements Runnable {
 
             while (true) {
                 Thread.sleep(1000);
-                bw.write("myftp>");
-                bw.newLine();
-                bw.flush();
+                if (isListening) {
+                    bw.write("myftp>");
+                    bw.newLine();
+                    bw.flush();
+                }
 
                 String msgFromClient = isListening ? br.readLine() : command;
 
@@ -161,7 +163,7 @@ public class ClientHandler implements Runnable {
     } // run
 
     // made changes to put for test
-    private synchronized static void put(String destination, Socket s) throws IOException {
+    private static void put(String destination, Socket s) throws IOException {
 
         InputStream in = s.getInputStream();
         OutputStream out = new FileOutputStream(destination);
@@ -176,34 +178,6 @@ public class ClientHandler implements Runnable {
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
             sb.append(new String(buffer, 0, bytesRead));
-
-            // if (sb.toString().contains(delimiter2) && sb.toString().contains(delimiter))
-            // {
-            // int delimIndex = sb.indexOf(delimiter) - 1;
-            // out.write(buffer, 0, delimIndex);
-
-            // } else if (sb.toString().contains(delimiter2)) {
-            // int start = sb.indexOf(delimiter2);
-            // out.write(buffer, 0, start - 1);
-            // int end = sb.indexOf(delimiter2, start);
-            // if (end == -1) {
-            // command = sb.toString().substring(start, sb.length());
-            // bytesRead = in.read(buffer);
-            // sb.append(new String(buffer, 0, bytesRead));
-            // start = sb.indexOf(delimiter2);
-            // command += sb.toString().substring(0, start + 1);
-            // if (sb.toString().contains(delimiter2) && sb.toString().contains(delimiter))
-            // {
-            // out.write(buffer, start + 1, bytesRead - 1);
-            // break;
-            // } else {
-            // out.write(buffer, start + 1, bytesRead);
-            // } //if
-            // } else {
-            // command = sb.toString().substring(start, end + 1);
-            // out.write(buffer, end + 1, bytesRead);
-            // }
-            // }
             if (sb.toString().contains("|")) {
                 // "|get file1.txt & "
                 String cmd = sb.toString().trim();
@@ -218,7 +192,7 @@ public class ClientHandler implements Runnable {
                 out.write(buffer, 0, bytesRead);
             }
             try {
-                Thread.sleep(1); // this might simulate a larger file
+                Thread.sleep(100); // this might simulate a larger file
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
