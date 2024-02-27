@@ -23,6 +23,7 @@ public class ClientHandler implements Runnable {
     private final Socket socket;
     private static boolean isListening = true;
     private static String command = "";
+    private final ReentrantLock lock = new ReentrantLock();
 
     public ClientHandler(Socket socket) {
         this.socket = socket;
@@ -49,7 +50,9 @@ public class ClientHandler implements Runnable {
                 Thread.sleep(1000);
 
                 String msgFromClient;
-                msgFromClient = isListening ? br.readLine() : command;
+                synchronized (lock) {
+                    msgFromClient = isListening ? br.readLine() : command;
+                }
                 System.out.println("The command is " + msgFromClient);
 
                 String arr[] = msgFromClient.split(" ");
@@ -212,22 +215,22 @@ public class ClientHandler implements Runnable {
 
                 if (arr[0].equals("ls")) {
                     if (newThread) {
-                        bw.write("myftp>");
-                        bw.newLine();
-                        bw.flush();
+                        synchronized (lock) {
+                            bw.write("myftp>");
+                            bw.newLine();
+                            setListening(false);
+                        }
                         final BufferedWriter finalBw = bw;
-                        setListening(false);
                         runNow(() -> {
                             try {
-                                // all this is doing is placing put() on another thread
-                                // isListening = false;
-                                finalBw.write(listDirectory(System.getProperty("user.dir")));
-                                finalBw.newLine();
-                                finalBw.flush();
-                                finalBw.write("myftp>");
-                                finalBw.newLine();
-                                finalBw.flush();
-                                setListening(true);
+                                synchronized (lock) {
+                                    finalBw.write(listDirectory(System.getProperty("user.dir")));
+                                    finalBw.newLine();
+                                    finalBw.write("myftp>");
+                                    finalBw.newLine();
+                                    finalBw.flush();
+                                    setListening(true);
+                                }
                             } catch (IOException e) { // i didnt change anything else
                                 e.printStackTrace();
                             }
