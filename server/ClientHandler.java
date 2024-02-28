@@ -84,13 +84,11 @@ public class ClientHandler implements Runnable {
                         bw.write("myftp>");
                         bw.newLine();
                         bw.flush();
-                        setListening(false);
                         runNow(() -> {
                             try {
                                 // all this is doing is placing put() on another thread
                                 // isListening = false;
                                 get(path + "/" + arr[1], socket);
-                                setListening(true);
                             } catch (IOException e) { // i didnt change anything else
                                 e.printStackTrace();
                             }
@@ -133,10 +131,8 @@ public class ClientHandler implements Runnable {
                         bw.write("myftp>");
                         bw.newLine();
                         bw.flush();
-                        setListening(false);
                         runNow(() -> {
                             delete(path + "/" + arr[1]);
-                            setListening(true);
                         });
                     } else {
                         delete(path + "/" + arr[1]);
@@ -151,14 +147,12 @@ public class ClientHandler implements Runnable {
                         bw.write("myftp>");
                         bw.newLine();
                         bw.flush();
-                        setListening(false);
                         runNow(() -> {
                             if (arr[1].equals("..")) {
                                 System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
                             } else {
                                 System.setProperty("user.dir", path + "/" + arr[1]);
                             }
-                            setListening(true);
                         });
                     } else {
                         if (arr[1].equals("..")) {
@@ -181,10 +175,8 @@ public class ClientHandler implements Runnable {
                         bw.write("myftp>");
                         bw.newLine();
                         bw.flush();
-                        setListening(false);
                         runNow(() -> {
                             makeDirectory(path + "/" + arr[1]);
-                            setListening(true);
                         });
                     } else {
                         makeDirectory(path + "/" + arr[1]);
@@ -201,7 +193,6 @@ public class ClientHandler implements Runnable {
                         bw.write("myftp>");
                         bw.newLine();
                         bw.flush();
-                        setListening(false);
                         runNow(() -> {
                             try {
                                 // all this is doing is placing put() on another thread
@@ -212,7 +203,6 @@ public class ClientHandler implements Runnable {
                                 finalBw.write("myftp>");
                                 finalBw.newLine();
                                 finalBw.flush();
-                                setListening(true);
                             } catch (IOException e) { // i didnt change anything else
                                 e.printStackTrace();
                             }
@@ -232,7 +222,6 @@ public class ClientHandler implements Runnable {
                         synchronized (lock) {
                             bw.write("myftp>");
                             bw.newLine();
-                            setListening(false);
                         }
                         final BufferedWriter finalBw = bw;
                         runNow(() -> {
@@ -243,7 +232,6 @@ public class ClientHandler implements Runnable {
                                     finalBw.write("myftp>");
                                     finalBw.newLine();
                                     finalBw.flush();
-                                    setListening(true);
                                 }
                             } catch (IOException e) { // i didnt change anything else
                                 e.printStackTrace();
