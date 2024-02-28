@@ -3,6 +3,7 @@ import java.net.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Some burning thoughts...
@@ -25,6 +26,7 @@ public class ClientHandler implements Runnable {
     private final InputStream in;
     private final OutputStream out;
     private final Condition condition = lock.newCondition();
+    private static final CountDownLatch latch = new CountDownLatch(1);
 
     public ClientHandler(Socket socket) throws IOException {
         this.socket = socket;
@@ -44,10 +46,11 @@ public class ClientHandler implements Runnable {
             writer = new OutputStreamWriter(this.out);
             br = new BufferedReader(reader);
             bw = new BufferedWriter(writer);
+            int count = 0;
 
             while (true) {
                 Thread.sleep(1000);
-                //send get/put id back to the client
+                // send get/put id back to the client
                 String prompt = "myftp>\n";
                 byte[] msg = prompt.getBytes();
                 out.write(msg, 0, msg.length);
@@ -57,22 +60,23 @@ public class ClientHandler implements Runnable {
 
                 String msgFromClient;
                 lock.lock();
-                //System.out.println("main thread acquired lock");
+                // System.out.println("main thread acquired lock");
                 try {
-                    //msgFromClient = br.readLine();
+                    // msgFromClient = br.readLine();
                     byte[] buffer = new byte[32];
                     int i = in.read(buffer);
                     msgFromClient = new String(buffer, 0, i);
-                    System.out.println("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!message from client: " + msgFromClient);
+                    System.out.println(
+                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!message from client: " + msgFromClient);
                 } finally {
                     condition.signal();
                     lock.unlock();
-                    //System.out.println("main thread released lock");
-                } //try
+                    // System.out.println("main thread released lock");
+                } // try
 
                 // if (msgFromClient.contains("$")) {
-                //     int len = msgFromClient.length();
-                //     msgFromClient = msgFromClient.substring(1, len);
+                // int len = msgFromClient.length();
+                // msgFromClient = msgFromClient.substring(1, len);
                 // } //if
 
                 String arr[] = msgFromClient.split(" ");
@@ -82,7 +86,7 @@ public class ClientHandler implements Runnable {
                     newThread = true;
                 }
 
-                //System.out.println("The command is " + msgFromClient);
+                // System.out.println("The command is " + msgFromClient);
 
                 if (arr[0].equals("get")) {
                     String path = System.getProperty("user.dir");
@@ -112,24 +116,30 @@ public class ClientHandler implements Runnable {
                     String path = System.getProperty("user.dir");
                     if (newThread) {
                         runNow(() -> {
+                            latch.countDown();
                             lock.lock();
                             System.out.println("worker thread aqcuired initial lock");
                             try {
                                 // all this is doing is placing put() on another thread
-                                //isListening = false;
+                                // isListening = false;
                                 put(path + "/" + arr[1]);
                                 System.out.println("put finished");
-                            } catch (IOException | InterruptedException e ) { // i didnt change anything else
+                            } catch (IOException | InterruptedException e) { // i didnt change anything else
                                 e.printStackTrace();
                             } finally {
-                                lock.unlock();
-                                System.out.println("worker finished");
+                                try {
+                                    latch.await();
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                } finally {
+                                    lock.unlock();
+                                    System.out.println("worker finished");
+                                }
                             }
                         });
                     } else {
                         put(path + "/" + arr[1]);
-                    } //if
-                    
+                    } // if
                 } // if
 
                 if (arr[0].equals("delete")) {
@@ -229,31 +239,31 @@ public class ClientHandler implements Runnable {
                     bw.newLine();
                     bw.flush();
                     // if (newThread) {
-                    //     synchronized (lock) {
-                    //         bw.write("myftp>");
-                    //         bw.newLine();
-                    //     }
-                    //     final BufferedWriter finalBw = bw;
-                    //     runNow(() -> {
-                    //         try {
-                    //             synchronized (lock) {
-                    //                 finalBw.write(listDirectory(System.getProperty("user.dir")));
-                    //                 finalBw.newLine();
-                    //                 finalBw.write("myftp>");
-                    //                 finalBw.newLine();
-                    //                 finalBw.flush();
-                    //             }
-                    //         } catch (IOException e) { // i didnt change anything else
-                    //             e.printStackTrace();
-                    //         }
-                    //     });
+                    // synchronized (lock) {
+                    // bw.write("myftp>");
+                    // bw.newLine();
+                    // }
+                    // final BufferedWriter finalBw = bw;
+                    // runNow(() -> {
+                    // try {
+                    // synchronized (lock) {
+                    // finalBw.write(listDirectory(System.getProperty("user.dir")));
+                    // finalBw.newLine();
+                    // finalBw.write("myftp>");
+                    // finalBw.newLine();
+                    // finalBw.flush();
+                    // }
+                    // } catch (IOException e) { // i didnt change anything else
+                    // e.printStackTrace();
+                    // }
+                    // });
                     // } else {
-                    //     bw.write(listDirectory(System.getProperty("user.dir")));
-                    //     bw.newLine();
-                    //     bw.flush();
-                    //     bw.write("myftp>");
-                    //     bw.newLine();
-                    //     bw.flush();
+                    // bw.write(listDirectory(System.getProperty("user.dir")));
+                    // bw.newLine();
+                    // bw.flush();
+                    // bw.write("myftp>");
+                    // bw.newLine();
+                    // bw.flush();
                     // } // if
                 }
 
@@ -300,16 +310,16 @@ public class ClientHandler implements Runnable {
             String s = new String(buffer, 0, bytesRead);
             System.out.println(s);
             if (s.contains("$")) {
-                //System.out.println(s);
-                //release for main
+                // System.out.println(s);
+                // release for main
                 lock.unlock();
-                //System.out.println("worker thread released lock");
-                //ask for it back
+                // System.out.println("worker thread released lock");
+                // ask for it back
                 lock.lock();
                 condition.await();
-                //System.out.println("worker thread acquired locked");
+                // System.out.println("worker thread acquired locked");
             } else if (s.contains(delimiter)) {
-                //int delimIndex = sb.indexOf(delimiter) - 1;
+                // int delimIndex = sb.indexOf(delimiter) - 1;
                 out.write(buffer, 0, bytesRead - 1);
                 break;
             } else {
@@ -376,10 +386,5 @@ public class ClientHandler implements Runnable {
     public static void runNow(Runnable target) {
         Thread t = new Thread(target);
         t.start();
-        // try {
-        // t.join(); // Wait for the thread to finish
-        // } catch (InterruptedException e) {
-        // e.printStackTrace();
-        // }
     } // runNow
 } // class

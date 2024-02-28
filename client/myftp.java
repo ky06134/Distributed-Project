@@ -32,7 +32,6 @@ class myftp {
         myftp.in = client.getInputStream();
         myftp.out = client.getOutputStream();
         Scanner scanner = new Scanner(System.in);
-        
 
         InputStreamReader reader = new InputStreamReader(myftp.in);
         OutputStreamWriter writer = new OutputStreamWriter(myftp.out);
@@ -43,14 +42,13 @@ class myftp {
 
             String serverMsg = br.readLine();
             System.out.print(serverMsg);
-            
-            
-            String cmd = scanner.nextLine();           
+
+            String cmd = scanner.nextLine();
             lock.lock();
             System.out.println("main acquire lock");
             try {
                 if (isUploading) {
-                    //bw.write("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+                    // bw.write("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
                     String flag = "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$";
                     byte[] msg = flag.getBytes();
                     out.write(msg, 0, msg.length);
@@ -68,7 +66,7 @@ class myftp {
                 condition.signal();
                 lock.unlock();
                 System.out.println("main released lock");
-            } //try
+            } // try
 
             String arr[] = cmd.split(" ");
             int n = arr.length;
@@ -91,7 +89,7 @@ class myftp {
 
             // LETS PUT IT TO THE TEST LOL
             if (arr[0].equals("put")) {
-                if (newThread) { 
+                if (newThread) {
                     myftp.isUploading = true;
                     ThreadPool.runNow(() -> {
                         try {
@@ -99,17 +97,18 @@ class myftp {
                         } catch (IOException e) { // i didnt change anything else
                             e.printStackTrace();
                         } finally {
-                            myftp.isUploading = false;
+                            if (ThreadPool.getThreadPool().isEmpty())
+                                myftp.isUploading = false;
                         }
-                    });
+                    }, cmd);
                 } else {
                     put(arr[1]);
-                } //if
-                
+                } // if
+
             } // if
 
             if (arr[0].equals("delete")) {
-                ThreadPool.runNow(() -> {
+                runNow(() -> {
                     // try {
                     // } catch (IOException e) { // i didnt change anything else
                     // e.printStackTrace();
@@ -155,7 +154,7 @@ class myftp {
                 break;
             } // if
         } // while
-        //lock.unlock();
+          // lock.unlock();
     } // main
 
     // made changes to put for test
@@ -165,8 +164,8 @@ class myftp {
         File file = new File(filepath);
         InputStream in = new FileInputStream(file);
 
-        byte[] buffer = new byte[32]; // <----changed for test 
-        int bytesRead; //length command get file1.txt &
+        byte[] buffer = new byte[32]; // <----changed for test
+        int bytesRead; // length command get file1.txt &
         while ((bytesRead = in.read(buffer)) != -1) {
             lock.lock();
             try {
@@ -175,8 +174,8 @@ class myftp {
                 condition.signal();
                 lock.unlock();
             }
-            //buffer = command
-            //out.write(buffer, 0, 32);
+            // buffer = command
+            // out.write(buffer, 0, 32);
             try {
                 Thread.sleep(250); // this might simulate a larger file
             } catch (InterruptedException e) {
@@ -211,5 +210,10 @@ class myftp {
         } // while
         out.flush();
     } // get
+
+    public static void runNow(Runnable target) {
+        Thread t = new Thread(target);
+        t.start();
+    }
 
 } // class
