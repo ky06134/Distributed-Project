@@ -26,7 +26,6 @@ public class ClientHandler implements Runnable {
     private final InputStream in;
     private final OutputStream out;
     private final Condition condition = lock.newCondition();
-    private static final CountDownLatch latch = new CountDownLatch(1);
 
     public ClientHandler(Socket socket) throws IOException {
         this.socket = socket;
@@ -116,8 +115,7 @@ public class ClientHandler implements Runnable {
                     String path = System.getProperty("user.dir");
                     if (newThread) {
                         runNow(() -> {
-                            latch.countDown();
-                            lock.lock();
+                            // lock.lock();
                             System.out.println("worker thread aqcuired initial lock");
                             try {
                                 // all this is doing is placing put() on another thread
@@ -127,14 +125,8 @@ public class ClientHandler implements Runnable {
                             } catch (IOException | InterruptedException e) { // i didnt change anything else
                                 e.printStackTrace();
                             } finally {
-                                try {
-                                    latch.await();
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                } finally {
-                                    lock.unlock();
-                                    System.out.println("worker finished");
-                                }
+                                lock.unlock();
+                                System.out.println("worker finished");
                             }
                         });
                     } else {
@@ -295,7 +287,7 @@ public class ClientHandler implements Runnable {
 
     // made changes to put for test
     private synchronized void put(String destination) throws IOException, InterruptedException {
-
+        lock.lock();
         OutputStream out = new FileOutputStream(destination);
         StringBuilder sb = new StringBuilder();
 

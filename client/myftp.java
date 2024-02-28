@@ -46,6 +46,13 @@ class myftp {
 
             String cmd = scanner.nextLine();
             lock.lock();
+            if (isUploading) {
+                try {
+                    condition.await();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
             System.out.println("main acquire lock");
             try {
                 if (isUploading) {
@@ -64,7 +71,15 @@ class myftp {
                 // bw.newLine();
                 // bw.flush();
             } finally {
-                condition.signal();
+                // try {
+                // condition.await();
+                // } catch (InterruptedException e) {
+                // e.printStackTrace();
+                // } finally {
+                // lock.unlock();
+                // System.out.println("main released lock");
+                // }
+                // condition.signal();
                 lock.unlock();
                 System.out.println("main released lock");
             } // try
@@ -171,7 +186,6 @@ class myftp {
 
     // made changes to put for test
     private static synchronized void put(String filepath) throws FileNotFoundException, IOException {
-
         // read stream
         File file = new File(filepath);
         InputStream in = new FileInputStream(file);
@@ -196,7 +210,7 @@ class myftp {
         } // while
         String delimiter = "\0";
         out.write(delimiter.getBytes());
-
+        in.close();
     } // put
 
     private static void get(String destination, Socket s) throws IOException {
@@ -221,11 +235,11 @@ class myftp {
             }
         } // while
         out.flush();
+        out.close();
     } // get
 
     public static void runNow(Runnable target) {
         Thread t = new Thread(target);
         t.start();
     }
-
 } // class
