@@ -1,23 +1,32 @@
-import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
-//havent used this yet dont know if i have to O.o
 public class ThreadPool {
-    // consider changing HashMap -> ConcurrentHashMap
-    private static HashMap<String, Pair<Integer, Thread>> threadPool = new HashMap<>();
+    private static Map<Long, Pair<String, Thread>> threadPool = new ConcurrentHashMap<>();
     private static Integer threadID = 0;
 
-    // no constructor
-
-    // method for thread creation
-    public static Integer runNow(Runnable target, String cmd) {
-        Thread t = new Thread(target);
-        threadID++;
-        threadPool.put(cmd, new Pair<Integer, Thread>(threadID, t));
-        t.start();
-        return threadID;
+    private ThreadPool() {
+        // Private constructor to prevent instantiation
     }
 
-    public static HashMap<String, Pair<Integer, Thread>> getThreadPool() {
+    public static long runNow(Runnable target, String cmd, long currentThreadId) {
+        Thread t = new Thread(target);
+        threadID++;
+        currentThreadId += threadID;
+        threadPool.put(currentThreadId, new Pair<String, Thread>(cmd, t));
+        t.start();
+        return currentThreadId;
+    }
+
+    public static Map<Long, Pair<String, Thread>> getThreadPool() {
         return threadPool;
+    }
+
+    public static void remove(long id) {
+        threadPool.remove(id);
+    }
+
+    public static int getThreadId() {
+        return threadID;
     }
 }

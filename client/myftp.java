@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -91,16 +92,27 @@ class myftp {
             if (arr[0].equals("put")) {
                 if (newThread) {
                     myftp.isUploading = true;
+                    final long currentThreadId = Thread.currentThread().threadId();
+                    final long tID = ThreadPool.getThreadId() + 1;
                     ThreadPool.runNow(() -> {
                         try {
-                            put(arr[1]); // all this is doing is placing put() on another thread
+                            for (Map.Entry<Long, Pair<String, Thread>> entry : ThreadPool.getThreadPool().entrySet()) {
+                                System.out.println("Key: " + entry.getKey() + ", Value1: " + entry.getValue().getFirst()
+                                        + ", Value2: " + entry.getValue().getSecond());
+                            }
+                            put(arr[1]); // all this is doing is placing put() on
+                                         // another thread
                         } catch (IOException e) { // i didnt change anything else
                             e.printStackTrace();
                         } finally {
-                            if (ThreadPool.getThreadPool().isEmpty())
+                            ThreadPool.remove(currentThreadId + tID);
+                            if (ThreadPool.getThreadPool().isEmpty()) {
                                 myftp.isUploading = false;
+                                System.out.println("..,.,.,...............................................");
+                            }
                         }
-                    }, cmd);
+                    }, cmd, currentThreadId);
+
                 } else {
                     put(arr[1]);
                 } // if
