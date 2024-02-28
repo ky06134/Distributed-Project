@@ -36,8 +36,6 @@ public class myftpserver {
         } catch (IOException e) {
             e.printStackTrace();
         } //try
-
-        System.out.println(n_server.isClosed());
         // start new thread for terminate server on tport
         runNow(() -> {
             ServerSocket t_server = null;
