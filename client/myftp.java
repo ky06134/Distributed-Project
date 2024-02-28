@@ -123,7 +123,6 @@ class myftp {
                             ThreadPool.remove(currentThreadId + tID);
                             if (ThreadPool.getThreadPool().isEmpty()) {
                                 myftp.isUploading = false;
-                                System.out.println("..,.,.,...............................................");
                             }
                         }
                     }, cmd, currentThreadId);
