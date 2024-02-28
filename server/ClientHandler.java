@@ -47,6 +47,7 @@ public class ClientHandler implements Runnable {
 
             while (true) {
                 Thread.sleep(1000);
+                //send get/put id back to the client
                 String prompt = "myftp>\n";
                 byte[] msg = prompt.getBytes();
                 out.write(msg, 0, msg.length);

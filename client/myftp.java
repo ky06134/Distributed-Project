@@ -1,5 +1,3 @@
-package client;
-
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
@@ -95,7 +93,7 @@ class myftp {
             if (arr[0].equals("put")) {
                 if (newThread) { 
                     myftp.isUploading = true;
-                    runNow(() -> {
+                    ThreadPool.runNow(() -> {
                         try {
                             put(arr[1]); // all this is doing is placing put() on another thread
                         } catch (IOException e) { // i didnt change anything else
@@ -111,7 +109,7 @@ class myftp {
             } // if
 
             if (arr[0].equals("delete")) {
-                runNow(() -> {
+                ThreadPool.runNow(() -> {
                     // try {
                     // } catch (IOException e) { // i didnt change anything else
                     // e.printStackTrace();
@@ -161,7 +159,7 @@ class myftp {
     } // main
 
     // made changes to put for test
-    private static void put(String filepath) throws FileNotFoundException, IOException {
+    private static synchronized void put(String filepath) throws FileNotFoundException, IOException {
 
         // read stream
         File file = new File(filepath);
@@ -213,11 +211,5 @@ class myftp {
         } // while
         out.flush();
     } // get
-
-    // creates a new thread
-    public static void runNow(Runnable target) {
-        Thread t = new Thread(target);
-        t.start();
-    }
 
 } // class
