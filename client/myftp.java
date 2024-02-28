@@ -108,7 +108,7 @@ class myftp {
             }
 
             if (arr[0].equals("ls")) {
-                final String s = br.readLine();
+                String s = br.readLine();
                 System.out.println(s);
                 // runNow(() -> {
                 // System.out.println(s);
@@ -116,7 +116,7 @@ class myftp {
             }
 
             if (arr[0].equals("cd")) {
-                final String s = br.readLine();
+                String s = br.readLine();
                 System.out.println(s);
                 // runNow(() -> {
                 // System.out.println(s);
@@ -128,7 +128,7 @@ class myftp {
             }
 
             if (arr[0].equals("pwd")) {
-                final String s = br.readLine();
+                String s = br.readLine();
                 System.out.println(s);
                 // runNow(() -> {
                 // System.out.println(s);
@@ -136,7 +136,7 @@ class myftp {
             }
 
             if (arr[0].equals("quit")) {
-                final String s = br.readLine();
+                String s = br.readLine();
                 System.out.println(s);
                 // runNow(() -> {
                 // System.out.println(s);
