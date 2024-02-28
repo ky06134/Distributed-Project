@@ -3,6 +3,7 @@ package client;
 import java.io.*;
 import java.net.*;
 import java.util.Scanner;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -10,6 +11,7 @@ import java.util.concurrent.locks.ReentrantLock;
 class myftp {
 
     private static final Lock lock = new ReentrantLock();
+    private static final Condition condition = lock.newCondition();
     private static Socket client;
     private static InputStream in;
     private static OutputStream out;
@@ -45,17 +47,27 @@ class myftp {
             System.out.print(serverMsg);
             
             
-            String cmd = scanner.nextLine();
+            String cmd = scanner.nextLine();           
             lock.lock();
             System.out.println("main acquire lock");
             try {
                 if (isUploading) {
-                    bw.write("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+                    //bw.write("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
+                    String flag = "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$";
+                    byte[] msg = flag.getBytes();
+                    out.write(msg, 0, msg.length);
                 }
-                bw.write(cmd);
-                bw.newLine();
-                bw.flush();
+                int lenAdd = 32 - cmd.length();
+                for (int i = 0; i < lenAdd; i++) {
+                    cmd += " ";
+                }
+                byte[] msg2 = cmd.getBytes();
+                out.write(msg2, 0, msg2.length);
+                // bw.write(cmd);
+                // bw.newLine();
+                // bw.flush();
             } finally {
+                condition.signal();
                 lock.unlock();
                 System.out.println("main released lock");
             } //try
@@ -162,6 +174,7 @@ class myftp {
             try {
                 myftp.out.write(buffer, 0, bytesRead);
             } finally {
+                condition.signal();
                 lock.unlock();
             }
             //buffer = command
