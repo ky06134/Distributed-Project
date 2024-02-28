@@ -115,7 +115,7 @@ public class ClientHandler implements Runnable {
                     String path = System.getProperty("user.dir");
                     if (newThread) {
                         runNow(() -> {
-                            lock.lock();
+                            // lock.lock();
                             System.out.println("worker thread aqcuired initial lock");
                             try {
                                 // all this is doing is placing put() on another thread
@@ -287,6 +287,7 @@ public class ClientHandler implements Runnable {
 
     // made changes to put for test
     private synchronized void put(String destination) throws IOException, InterruptedException {
+        lock.lock();
         OutputStream out = new FileOutputStream(destination);
         StringBuilder sb = new StringBuilder();
 
