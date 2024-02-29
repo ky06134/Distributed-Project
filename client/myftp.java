@@ -52,8 +52,8 @@ class myftp {
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }
-            System.out.println("main acquire lock");
+            } //if
+            System.out.println("MAIN THREAD ACQUIRED LOCK");
             try {
                 if (isUploading) {
                     // bw.write("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
@@ -81,7 +81,7 @@ class myftp {
                 // }
                 // condition.signal();
                 lock.unlock();
-                System.out.println("main released lock");
+                System.out.println("MAIN THREAD RELEASED LOCK");
             } // try
 
             String arr[] = cmd.split(" ");
@@ -107,11 +107,12 @@ class myftp {
             if (arr[0].equals("put")) {
                 if (newThread) {
                     myftp.isUploading = true;
-                    final long currentThreadId = Thread.currentThread().threadId();
-                    final long tID = ThreadPool.getThreadId() + 1;
-                    ThreadPool.runNow(() -> {
+                    final long currentThreadId = Thread.currentThread().getId();
+                    final long tID = ClientThreadPool.getThreadId() + 1;
+                    ClientThreadPool.runNow(() -> {
+                        System.out.println("WORKER THREAD CREATED");
                         try {
-                            for (Map.Entry<Long, Pair<String, Thread>> entry : ThreadPool.getThreadPool().entrySet()) {
+                            for (Map.Entry<Long, Pair<String, Thread>> entry : ClientThreadPool.getThreadPool().entrySet()) {
                                 System.out.println("Key: " + entry.getKey() + ", Value1: " + entry.getValue().getFirst()
                                         + ", Value2: " + entry.getValue().getSecond());
                             }
@@ -120,8 +121,8 @@ class myftp {
                         } catch (IOException e) { // i didnt change anything else
                             e.printStackTrace();
                         } finally {
-                            ThreadPool.remove(currentThreadId + tID);
-                            if (ThreadPool.getThreadPool().isEmpty()) {
+                            ClientThreadPool.remove(currentThreadId + tID);
+                            if (ClientThreadPool.getThreadPool().isEmpty()) {
                                 myftp.isUploading = false;
                             }
                         }
@@ -189,6 +190,7 @@ class myftp {
         File file = new File(filepath);
         InputStream in = new FileInputStream(file);
 
+        System.out.println("UPLOADING...");
         byte[] buffer = new byte[32]; // <----changed for test
         int bytesRead; // length command get file1.txt &
         while ((bytesRead = in.read(buffer)) != -1) {
@@ -210,6 +212,8 @@ class myftp {
         String delimiter = "\0";
         out.write(delimiter.getBytes());
         in.close();
+
+        System.out.println("UPLOAD FINISHED");
     } // put
 
     private static void get(String destination, Socket s) throws IOException {

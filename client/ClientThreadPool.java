@@ -1,11 +1,11 @@
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class ThreadPool {
+public class ClientThreadPool {
     private static Map<Long, Pair<String, Thread>> threadPool = new ConcurrentHashMap<>();
     private static Integer threadID = 0;
 
-    private ThreadPool() {
+    private ClientThreadPool() {
         // Private constructor to prevent instantiation
     }
 
