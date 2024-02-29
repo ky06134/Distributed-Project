@@ -21,7 +21,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class ClientHandler implements Runnable {
 
-    private ReentrantLock lock = new ReentrantLock();
+    private ReentrantLock lock = new ReentrantLock(true);
     private final Socket socket;
     private final InputStream in;
     private final OutputStream out;
@@ -29,6 +29,7 @@ public class ClientHandler implements Runnable {
     private final Condition nextPutRequest = lock.newCondition();
     private final Condition commandRecieved = lock.newCondition();
     private boolean isDownloading = false;
+    private boolean flag = false;
     private int threadCount = 0;
 
     public ClientHandler(Socket socket) throws IOException {
@@ -66,12 +67,6 @@ public class ClientHandler implements Runnable {
                 System.out.println("MAIN WAITING FOR LOCK...");
                 lock.lock();
                 System.out.println("MAIN THREAD ACQUIRED LOCK");
-                if (isDownloading) {
-                    System.out.println("AWAITING COMMAND...");
-                    commandRecieved.await();
-                    System.out.println("COMMAND ACQUIRED");
-                }
-                
                 try {
                     // msgFromClient = br.readLine();
                     byte[] buffer = new byte[32];
@@ -128,37 +123,34 @@ public class ClientHandler implements Runnable {
                     if (newThread) {
                         this.threadCount++;
                         ServerThreadPool.runNow(() -> {                           
-                            System.out.println("WORKER THREAD CREATED");
+                            System.out.println("WORKER THREAD WAITING FOR LOCK...");
                             lock.lock();
                             System.out.println("WORKER ACQUIRED LOCK");
-                            if (isDownloading) {
+                            //While the previous thread is running we give up lock to main
+                            //when previous thread finishes we lock 
+                            while (this.flag) {
+                                lock.unlock();
                                 try {
-                                    System.out.println("AWAITING NEXT PUT SIGNAL...");
-                                    nextPutRequest.await();
+                                    Thread.sleep(100);
                                 } catch (InterruptedException e) {
                                     e.printStackTrace();
                                 }
-                            }
-                            isDownloading = true;
+                                lock.lock();
+                            }   
+                            this.flag = true;                        
                             try {
                                 put(path + "/" + arr[1]);
                                 System.out.println("put finished");
                             } catch (IOException | InterruptedException e) { // i didnt change anything else
                                 e.printStackTrace();
                             } finally {
-                                threadCount--;
-                                isDownloading = threadCount > 0;
-                                if (isDownloading) {
-                                    nextPutRequest.signal();
-                                    System.out.println("NEXT PUT REQUEST SIGNAL");
-                                } else {
-                                    commandRecieved.signal();
-                                    System.out.println("NEXT COMMAND SIGNAL");
-                                }
+                                this.threadCount--;
+                                isDownloading = this.threadCount > 0;
+                                this.flag = false;
+                                nextPutRequest.signal();
+                                System.out.println("NEXT PUT REQUEST SIGNAL");
                                 lock.unlock();
                                 System.out.println("WORKER RELEASED LOCK");
-                                System.out.println("HAS THREADS WAITING: " + lock.hasQueuedThreads());
-                                System.out.println("IS HELD BY CURRENT THREAD: " + lock.isHeldByCurrentThread());
                             }
                         });
                     } else {
@@ -334,15 +326,7 @@ public class ClientHandler implements Runnable {
             String s = new String(buffer, 0, bytesRead);
             System.out.println(s);
             if (s.contains("$")) {
-                //System.out.println("AWAITING TO RESUME UPLOAD...");
-                System.out.println("UNLOCKING FOR MAIN...");
-                lock.unlock();
-                System.out.println("WORKER AWAITING LOCK...");
-                lock.lock();
-                System.out.println("WORKER LOCKED");
-                System.out.println("SENDING SIGNAL");
-                commandRecieved.signal();
-                System.out.println("SIGNAL SENT");
+
                 System.err.println("AWAITING FOR UPLOAD SIGNAL...");
                 resumeUpload.await();
                 System.out.println("UPLOAD RESUMED");
