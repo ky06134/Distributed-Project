@@ -7,8 +7,6 @@ public class myftpserver {
     protected static String server_IP;
     private static Integer nport = 0; // normal port
     private static Integer tport = 0; // terminate port
-    private static HashMap<Integer, Thread> threadPool = new HashMap<>();
-    private static Integer threadID = 0;
 
     public static void main(String[] args) throws Exception {
 
@@ -49,9 +47,9 @@ public class myftpserver {
         while (true) {
             Socket n = n_server.accept(); // waits for connection from client
             System.out.println("Normal port connected");
-            // Socket t = t_server.accept();
-            // System.out.println("Terminate port connected");
-            runNow(new ClientHandler(n));
+            Socket t = t_server.accept();
+            System.out.println("Terminate port connected");
+            runNow(new ClientHandler(n, t));
         } // while
 
     } // main

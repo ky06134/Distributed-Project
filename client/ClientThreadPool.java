@@ -3,19 +3,15 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ClientThreadPool {
     private static Map<Long, Pair<String, Thread>> threadPool = new ConcurrentHashMap<>();
-    private static Integer threadID = 0;
 
     private ClientThreadPool() {
         // Private constructor to prevent instantiation
     }
 
-    public static long runNow(Runnable target, String cmd, long currentThreadId) {
+    public static void runNow(Runnable target, String cmd, long currentThreadId) {
         Thread t = new Thread(target);
-        threadID++;
-        currentThreadId += threadID;
         threadPool.put(currentThreadId, new Pair<String, Thread>(cmd, t));
         t.start();
-        return currentThreadId;
     }
 
     public static Map<Long, Pair<String, Thread>> getThreadPool() {
@@ -26,7 +22,4 @@ public class ClientThreadPool {
         threadPool.remove(id);
     }
 
-    public static int getThreadId() {
-        return threadID;
-    }
 }

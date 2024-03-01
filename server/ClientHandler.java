@@ -24,21 +24,21 @@ public class ClientHandler implements Runnable {
     private ReentrantLock lock = new ReentrantLock(true);
     private ReentrantLock syncPut = new ReentrantLock(true);
     private final Socket nsocket;
-    // private final Socket tsocket;
+    private final Socket tsocket;
     private final InputStream in;
     private final OutputStream out;
-    // private final InputStream tin;
-    // private final OutputStream tout;
+    private final InputStream tin;
+    private final OutputStream tout;
     private final Condition resumeUpload = lock.newCondition();
     private boolean flag = false;
 
-    public ClientHandler(Socket n) throws IOException {
+    public ClientHandler(Socket n, Socket t) throws IOException {
         this.nsocket = n;
-        //this.tsocket = t;
+        this.tsocket = t;
         this.in = nsocket.getInputStream();
         this.out = nsocket.getOutputStream();
-        // this.tin = tsocket.getInputStream();
-        // this.tout = tsocket.getOutputStream();
+        this.tin = tsocket.getInputStream();
+        this.tout = tsocket.getOutputStream();
     } // constructor
 
     public void run() {
@@ -53,7 +53,6 @@ public class ClientHandler implements Runnable {
             writer = new OutputStreamWriter(this.out);
             br = new BufferedReader(reader);
             bw = new BufferedWriter(writer);
-            int count = 0;
 
             while (true) {
                 Thread.sleep(1000);
@@ -67,16 +66,16 @@ public class ClientHandler implements Runnable {
 
                 String msgFromClient;
                 //ServerThreadPool.purge();
-                System.out.println("MAIN WAITING FOR LOCK...");
+                //System.out.println("MAIN WAITING FOR LOCK...");
                 lock.lock();
-                System.out.println("MAIN THREAD ACQUIRED LOCK");
+                //System.out.println("MAIN THREAD ACQUIRED LOCK");
 
                 while (flag) {
-                    System.out.println("UPLOAD FINISHED: ALLOW WORKER TO LOCK");
+                    //System.out.println("UPLOAD FINISHED: ALLOW WORKER TO LOCK");
                     lock.unlock(); 
                     Thread.sleep(100);
                     lock.lock();
-                    System.out.println("MAIN THREAD ACQUIRED LOCK");
+                    //System.out.println("MAIN THREAD ACQUIRED LOCK");
                 }
                 try {
                     // msgFromClient = br.readLine();
@@ -88,7 +87,7 @@ public class ClientHandler implements Runnable {
                 } finally {
                     resumeUpload.signal();
                     lock.unlock();
-                    System.out.println("MAIN THREAD RELEASED LOCK");
+                    //System.out.println("MAIN THREAD RELEASED LOCK");
                 } // try
 
                 // if (msgFromClient.contains("$")) {
@@ -132,6 +131,11 @@ public class ClientHandler implements Runnable {
                 if (arr[0].equals("put")) {
                     String path = System.getProperty("user.dir");
                     if (newThread) {
+                        //create thread id and add to hashmap, send id to client through tport
+                        Integer threadID = ServerThreadPool.generateID();
+                        String temp = "WORKER ID:  " + threadID.toString() + "\n";
+                        msg = temp.getBytes();
+                        out.write(msg, 0, msg.length);
                         ServerThreadPool.runNow(() -> { 
                             syncPut.lock();                                                                           
                             try {
@@ -146,7 +150,7 @@ public class ClientHandler implements Runnable {
                                 syncPut.unlock();
                                 System.out.println("WORKER RELEASED LOCK");
                             }
-                        }, "e", 0);
+                        }, arr[0], threadID);
                     } else {
                         put(path + "/" + arr[1]);
                     } // if
@@ -227,6 +231,32 @@ public class ClientHandler implements Runnable {
                     
                 }
 
+                /**lets play a game of what if
+                     * 1. what if terminate in queue? easy. remove from hashmap, no cleanup
+                     * 2. what if terminate while running (while holding lock)? 
+                     *      - must give up lock to next worker 
+                     *      - must clean buffer
+                     *      - must cleant the stream 
+                     */
+                if (arr[0].equals("terminate")) {
+                    byte[] buffer = new byte[32];
+                    int bytesRead = this.tin.read(buffer);
+                    String s = new String(buffer, 0, bytesRead);
+                    Integer i = Integer.parseInt(s);
+                    Thread t = ServerThreadPool.getThread(i);
+                    System.out.println(t.getState());
+                    if (t.getState() == Thread.State.BLOCKED) {
+                        
+                    } else if (t.getState() == Thread.State.RUNNABLE) {
+                        t.interrupt();
+                    } //if
+                    String temp = "WORKER " + s + " TERMINATED\n";
+                    msg = temp.getBytes();
+                    out.write(msg, 0, msg.length);
+                    
+
+                }
+
                 if (arr[0].equals("quit")) {
                     bw.write("Closing connection");
                     bw.newLine();
@@ -272,7 +302,11 @@ public class ClientHandler implements Runnable {
         int bytesRead;
         while ((bytesRead = this.in.read(buffer)) != -1) {
             String s = new String(buffer, 0, bytesRead);
-            System.out.println(s);
+            //System.out.println(s);
+            if (Thread.interrupted()) {
+                System.out.println("WE OUT boooooooooooooooooooooy");
+                break;
+            } //if
             if (s.contains("$")) {
 
                 System.err.println("AWAITING FOR UPLOAD SIGNAL...");

@@ -16,8 +16,8 @@ class myftp {
     private static Socket tsocket;
     private static InputStream in;
     private static OutputStream out;
-    // private static InputStream tin;
-    // private static OutputStream tout;
+    private static InputStream tin;
+    private static OutputStream tout;
     private static boolean isUploading = false;
 
     public static void main(String[] args) throws IOException {
@@ -36,11 +36,11 @@ class myftp {
         } // catch
 
         nsocket = new Socket(machineName, nport);
-        //tsocket = new Socket(machineName, tport);
+        tsocket = new Socket(machineName, tport);
         myftp.in = nsocket.getInputStream();
         myftp.out = nsocket.getOutputStream();
-        // myftp.tin = tsocket.getInputStream();
-        // myftp.tout = tsocket.getOutputStream();
+        myftp.tin = tsocket.getInputStream();
+        myftp.tout = tsocket.getOutputStream();
         Scanner scanner = new Scanner(System.in);
 
         InputStreamReader reader = new InputStreamReader(myftp.in);
@@ -94,20 +94,19 @@ class myftp {
                 if (newThread) {
                     myftp.isUploading = true;
                     final long currentThreadId = Thread.currentThread().getId();
-                    final long tID = ClientThreadPool.getThreadId() + 1;
                     ClientThreadPool.runNow(() -> {
                         System.out.println("WORKER THREAD CREATED");
                         syncPut.lock();
                         try {
-                            for (Map.Entry<Long, Pair<String, Thread>> entry : ClientThreadPool.getThreadPool().entrySet()) {
-                                System.out.println("Key: " + entry.getKey() + ", Value1: " + entry.getValue().getFirst()
-                                        + ", Value2: " + entry.getValue().getSecond());
-                            }
+                            // for (Map.Entry<Long, Pair<String, Thread>> entry : ClientThreadPool.getThreadPool().entrySet()) {
+                            //     System.out.println("Key: " + entry.getKey() + ", Value1: " + entry.getValue().getFirst()
+                            //             + ", Value2: " + entry.getValue().getSecond());
+                            // }
                             put(arr[1]); 
                         } catch (IOException e) { // i didnt change anything else
                             e.printStackTrace();
                         } finally {
-                            ClientThreadPool.remove(currentThreadId + tID);
+                            ClientThreadPool.remove(currentThreadId);
                             if (ClientThreadPool.getThreadPool().isEmpty()) {
                                 myftp.isUploading = false;
                             }
@@ -158,6 +157,10 @@ class myftp {
                 // });
             }
 
+            if (arr[0].equals("terminate")) {
+                tout.write(arr[1].getBytes());
+            }
+
             if (arr[0].equals("quit")) {
                 String s = br.readLine();
                 System.out.println(s);
@@ -177,7 +180,6 @@ class myftp {
         File file = new File(filepath);
         InputStream in = new FileInputStream(file);
 
-        System.out.println("UPLOADING...");
         byte[] buffer = new byte[32]; // <----changed for test
         int bytesRead; // length command get file1.txt &
         while ((bytesRead = in.read(buffer)) != -1) {

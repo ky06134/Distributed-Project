@@ -2,31 +2,33 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ServerThreadPool {
-    private static Map<Long, Pair<String, Thread>> threadPool = new ConcurrentHashMap<>();
+    private static Map<Integer, Pair<String, Thread>> threadPool = new ConcurrentHashMap<>();
     private static Integer threadID = 0;
 
     private ServerThreadPool() {
         // Private constructor to prevent instantiation
     }
 
-    public static long runNow(Runnable target, String cmd, long currentThreadId) {
-        Thread t = new Thread(target);
+    public synchronized static Integer generateID() {
         threadID++;
-        currentThreadId += threadID;
-        threadPool.put(currentThreadId, new Pair<String, Thread>(cmd, t));
-        t.start();
-        return currentThreadId;
+        return threadID;
     }
 
-    public static Map<Long, Pair<String, Thread>> getThreadPool() {
+    public static void runNow(Runnable target, String cmd, Integer id) {
+        Thread t = new Thread(target);
+        threadPool.put(id, new Pair<String, Thread>(cmd, t));
+        t.start();
+    }
+
+    public static Map<Integer, Pair<String, Thread>> getThreadPool() {
         return threadPool;
     }
 
-    public static void remove(long id) {
+    public static void remove(Integer id) {
         threadPool.remove(id);
     }
 
-    public static int getThreadId() {
-        return threadID;
+    public static Thread getThread(Integer id) {
+        return threadPool.get(id).getSecond();
     }
 }
