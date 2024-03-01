@@ -75,14 +75,19 @@ public class ClientHandler implements Runnable {
                     newThread = true;
                 }
 
-                // System.out.println("The command is " + msgFromClient);
+                System.out.println("The command is " + msgFromClient);
 
                 if (arr[0].equals("get")) {
                     runNow(new GetWorker(arr[1], getServerSocket));
                 }
 
                 if (arr[0].equals("put")) {
-                    runNow(new PutWorker(arr[1], putServerSocket));
+                    PutWorker pw = new PutWorker(arr[1], putServerSocket);
+                    Integer id = pw.getId();
+                    bw.write("Worker Id: " + id);
+                    bw.newLine();
+                    bw.flush();
+                    runNow(pw);
                 } // if
 
                 if (arr[0].equals("delete")) {
@@ -141,7 +146,7 @@ public class ClientHandler implements Runnable {
                 }
 
                 if (arr[0].equals("terminate")) {
-
+                    ServerThreadPool.getThread(Integer.valueOf(arr[1])).terminate();
                 }
 
                 if (arr[0].equals("quit")) {

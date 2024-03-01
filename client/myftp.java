@@ -64,6 +64,8 @@ class myftp {
 
             if (arr[0].equals("put")) {
                 runNow(new ClientPutWorker(machineName, arr[1]));
+                String s = br.readLine();
+                System.out.println(s);
             } // if
 
             if (arr[0].equals("delete")) {
