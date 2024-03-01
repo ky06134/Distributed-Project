@@ -67,7 +67,7 @@ class myftp {
                     System.out.println(Integer.valueOf(s));
                     runNow(new ClientGetWorker(machineName, arr[1], Integer.valueOf(s))); 
                 } else {
-                    get(arr[1]);
+                    get1(arr[1]);
                 }
                 
             } // if
@@ -79,7 +79,7 @@ class myftp {
                     System.out.println(Integer.valueOf(s));
                     runNow(new ClientPutWorker(machineName, arr[1], Integer.valueOf(s))); 
                 } else {
-                    put(arr[1]);
+                    put1(arr[1]);
                     System.out.println("WE OUT");
                 }
             } // if
@@ -126,7 +126,7 @@ class myftp {
     } // main
 
 
-    private static void get(String destination) throws IOException {
+    private static void get1(String destination) throws IOException {
         OutputStream out = new FileOutputStream(destination);
         byte[] buffer = new byte[32]; 
         int bytesRead;
@@ -140,10 +140,10 @@ class myftp {
                 out.write(buffer, 0, bytesRead);
             }   
         } // while   
-
+        out.close();
     } //put
 
-    private static void put(String filepath) throws FileNotFoundException, IOException {
+    private static void put1(String filepath) throws FileNotFoundException, IOException {
         File file = new File(filepath);
         InputStream in = new FileInputStream(file);
         byte[] buffer = new byte[32];
@@ -153,7 +153,7 @@ class myftp {
         } // while
         String delimiter = "\0";
         out.write(delimiter.getBytes());
-
+        in.close();
     } // get
 
 

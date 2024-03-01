@@ -56,9 +56,9 @@ public class ClientHandler implements Runnable {
 
             while (true) {
 
-                bw.write("myftp>");
-                bw.newLine();
-                bw.flush();
+                 String prompt = "myftp>\n";
+                byte[] msg = prompt.getBytes();
+                out.write(msg, 0, msg.length);
 
                 String msgFromClient;
 
@@ -86,7 +86,7 @@ public class ClientHandler implements Runnable {
                         GetWorker gw = new GetWorker(arr[1], getServerSocket, id);
                         runNow(gw);
                     } else {
-                        get(arr[1]);
+                        get1(arr[1]);
                     } //if
                 } //if
 
@@ -96,29 +96,20 @@ public class ClientHandler implements Runnable {
                         bw.write(id.toString());
                         bw.newLine();
                         bw.flush();
-                        PutWorker pw = new PutWorker(arr[1], getServerSocket, id);
+                        //System.out.println("before error");
+                        PutWorker pw = new PutWorker(arr[1], putServerSocket, id);
+                        System.out.println("PutWorked");
                         runNow(pw);
                     } else {
-                        put(arr[1]);
+                        put1(arr[1]);
                         System.out.println("WE OUT");
                     } //if
                 } // if
 
                 if (arr[0].equals("delete")) {
                     String path = System.getProperty("user.dir");
-                    if (newThread) {
-                        bw.write("myftp>");
-                        bw.newLine();
-                        bw.flush();
-                        runNow(() -> {
-                            delete(path + "/" + arr[1]);
-                        });
-                    } else {
-                        delete(path + "/" + arr[1]);
-                        bw.write("myftp>");
-                        bw.newLine();
-                        bw.flush();
-                    } // if
+                    delete(path + "/" + arr[1]);
+                    
                 }
                 if (arr[0].equals("cd")) {
                     String path = System.getProperty("user.dir");
@@ -128,9 +119,6 @@ public class ClientHandler implements Runnable {
                     } else {
                         System.setProperty("user.dir", path + "/" + arr[1]);
                     }
-                    bw.write("myftp>");
-                    bw.newLine();
-                    bw.flush();
                     bw.write(System.getProperty("user.dir"));
                     bw.newLine();
                     bw.flush();
@@ -139,9 +127,6 @@ public class ClientHandler implements Runnable {
                 if (arr[0].equals("mkdir")) {
                     String path = System.getProperty("user.dir");
                     makeDirectory(path + "/" + arr[1]);
-                    bw.write("myftp>");
-                    bw.newLine();
-                    bw.flush();
 
                 }
 
@@ -211,7 +196,7 @@ public class ClientHandler implements Runnable {
         return res;
     }
 
-    private void put(String destination) throws IOException {
+    private void put1(String destination) throws IOException {
         OutputStream out = new FileOutputStream(destination);
         byte[] buffer = new byte[32]; 
         int bytesRead;
@@ -225,10 +210,11 @@ public class ClientHandler implements Runnable {
                 out.write(buffer, 0, bytesRead);
             }   
         } // while   
+        out.close();
 
     } //put
 
-    private void get(String filepath) throws FileNotFoundException, IOException {
+    private void get1(String filepath) throws FileNotFoundException, IOException {
         File file = new File(filepath);
         InputStream in = new FileInputStream(file);
         byte[] buffer = new byte[32];
@@ -238,6 +224,7 @@ public class ClientHandler implements Runnable {
         } // while
         String delimiter = "\0";
         out.write(delimiter.getBytes());
+        in.close();
 
     } // get
 

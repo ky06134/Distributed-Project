@@ -34,6 +34,7 @@ public class PutWorker implements Worker, Runnable {
     }
     
     private void put(String destination) throws IOException {
+        System.out.println("made it to server put");
         File file = new File(destination);
         OutputStream out = new FileOutputStream(destination);
         byte[] buffer = new byte[32]; 
