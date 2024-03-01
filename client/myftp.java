@@ -55,17 +55,33 @@ class myftp {
 
             byte[] msg = cmd.getBytes();
             out.write(msg, 0, msg.length);
+            boolean flag = false;
             if (arr[n - 1].equals("&")) {
+                flag = true;
             }
 
             if (arr[0].equals("get")) {
-                runNow(new ClientGetWorker(machineName, arr[1]));               
+                if (flag) {
+                    String s = br.readLine();
+                    System.out.println("Worker ID: " + s);
+                    System.out.println(Integer.valueOf(s));
+                    runNow(new ClientGetWorker(machineName, arr[1], Integer.valueOf(s))); 
+                } else {
+                    get(arr[1]);
+                }
+                
             } // if
 
             if (arr[0].equals("put")) {
-                runNow(new ClientPutWorker(machineName, arr[1]));
-                String s = br.readLine();
-                System.out.println(s);
+                if (flag) {
+                    String s = br.readLine();
+                    System.out.println("Worker ID: " + s);
+                    System.out.println(Integer.valueOf(s));
+                    runNow(new ClientPutWorker(machineName, arr[1], Integer.valueOf(s))); 
+                } else {
+                    put(arr[1]);
+                    System.out.println("WE OUT");
+                }
             } // if
 
             if (arr[0].equals("delete")) {
@@ -95,6 +111,8 @@ class myftp {
 
             if (arr[0].equals("terminate")) {
                 tout.write(arr[1].getBytes());
+                ClientThreadPool.getThread(Integer.valueOf(arr[1])).terminate();
+                ClientThreadPool.remove(Integer.valueOf(arr[1]));
             }
 
             if (arr[0].equals("quit")) {
@@ -106,6 +124,37 @@ class myftp {
             } // if
         } // while
     } // main
+
+
+    private static void get(String destination) throws IOException {
+        OutputStream out = new FileOutputStream(destination);
+        byte[] buffer = new byte[32]; 
+        int bytesRead;
+        while ((bytesRead = in.read(buffer)) != -1) {  
+            String s = new String(buffer);
+            if (s.contains("\0")) {
+                int index = s.indexOf("\0"); 
+                out.write(buffer, 0, index);
+                break;
+            } else {
+                out.write(buffer, 0, bytesRead);
+            }   
+        } // while   
+
+    } //put
+
+    private static void put(String filepath) throws FileNotFoundException, IOException {
+        File file = new File(filepath);
+        InputStream in = new FileInputStream(file);
+        byte[] buffer = new byte[32];
+        int bytesRead;
+        while ((bytesRead = in.read(buffer)) != -1) {
+            out.write(buffer, 0, bytesRead);      
+        } // while
+        String delimiter = "\0";
+        out.write(delimiter.getBytes());
+
+    } // get
 
 
     public static void runNow(Runnable target) {

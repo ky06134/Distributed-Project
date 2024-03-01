@@ -13,14 +13,14 @@ public class PutWorker implements Worker, Runnable {
     String destination;
     Socket putSocket;
     InputStream in;
-    boolean killswitch;
+    boolean killswitch = false;
     Integer id;
 
-    public PutWorker(String destination, ServerSocket putServer) throws IOException {
+    public PutWorker(String destination, ServerSocket putServer, Integer id) throws IOException {
         this.destination = destination;
         this.putSocket = putServer.accept();
         this.in = putSocket.getInputStream();
-        this.id = ServerThreadPool.generateID();
+        this.id = id;
         ServerThreadPool.put(this.id, this);
     }
 

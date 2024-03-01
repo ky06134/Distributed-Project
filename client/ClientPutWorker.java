@@ -6,16 +6,20 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class ClientPutWorker implements Runnable {
+public class ClientPutWorker implements Worker, Runnable {
 
     Socket psocket; 
     OutputStream out;
     String filePath;
+    Integer id;
+    boolean killswitch = false;
 
-    public ClientPutWorker(String machineName, String filepath) throws IOException {
+    public ClientPutWorker(String machineName, String filepath, Integer id) throws IOException {
         this.psocket = new Socket(machineName, 8080);
         this.out = psocket.getOutputStream();
         this.filePath = filepath;
+        this.id = id;
+        ClientThreadPool.put(this.id, this);
     } 
 
     @Override
@@ -38,13 +42,22 @@ public class ClientPutWorker implements Runnable {
         while ((bytesRead = in.read(buffer)) != -1) {
             this.out.write(buffer, 0, bytesRead);
             try {
+                if (killswitch) {
+                    Thread.currentThread().interrupt();
+                }   
                 Thread.sleep(250); // this might simulate a larger file
             } catch (InterruptedException e) {
-                e.printStackTrace();
+                break;
             }
         } // while
-
         in.close();
-
     } // put
+
+    public void terminate() {
+        this.killswitch = true;
+    }
+
+    public Integer getId() {
+        return this.id;
+    }
 }
