@@ -12,27 +12,35 @@ class myftp {
     private static final ReentrantLock lock = new ReentrantLock(true);
     private static final ReentrantLock syncPut = new ReentrantLock(true);
     private static final Condition condition = lock.newCondition();
-    private static Socket client;
+    private static Socket nsocket;
+    private static Socket tsocket;
     private static InputStream in;
     private static OutputStream out;
+    // private static InputStream tin;
+    // private static OutputStream tout;
     private static boolean isUploading = false;
 
     public static void main(String[] args) throws IOException {
 
-        Integer port = 0;
+        Integer nport = 0;
+        Integer tport = 0;
         String machineName = "";
 
         try {
             machineName = args[0];
-            port = Integer.valueOf(args[1]); // grab port from command line arg
+            nport = Integer.valueOf(args[1]); // grab nport from command line arg
+            tport = Integer.valueOf(args[2]); // grab tport
         } catch (NumberFormatException e) {
             System.out.println("Bad arguments");
             System.exit(0);
         } // catch
 
-        client = new Socket(machineName, port);
-        myftp.in = client.getInputStream();
-        myftp.out = client.getOutputStream();
+        nsocket = new Socket(machineName, nport);
+        //tsocket = new Socket(machineName, tport);
+        myftp.in = nsocket.getInputStream();
+        myftp.out = nsocket.getOutputStream();
+        // myftp.tin = tsocket.getInputStream();
+        // myftp.tout = tsocket.getOutputStream();
         Scanner scanner = new Scanner(System.in);
 
         InputStreamReader reader = new InputStreamReader(myftp.in);
@@ -54,10 +62,8 @@ class myftp {
                     e.printStackTrace();
                 }
             } //if
-            //System.out.println("MAIN THREAD ACQUIRED LOCK");
             try {
                 if (isUploading) {
-                    // bw.write("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
                     String flag = "$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$";
                     byte[] msg = flag.getBytes();
                     out.write(msg, 0, msg.length);
@@ -68,21 +74,8 @@ class myftp {
                 }
                 byte[] msg2 = cmd.getBytes();
                 out.write(msg2, 0, msg2.length);
-                // bw.write(cmd);
-                // bw.newLine();
-                // bw.flush();
             } finally {
-                // try {
-                // condition.await();
-                // } catch (InterruptedException e) {
-                // e.printStackTrace();
-                // } finally {
-                // lock.unlock();
-                // System.out.println("main released lock");
-                // }
-                // condition.signal();
                 lock.unlock();
-                //System.out.println("MAIN THREAD RELEASED LOCK");
             } // try
 
             String arr[] = cmd.split(" ");
@@ -93,18 +86,10 @@ class myftp {
             }
 
             if (arr[0].equals("get")) {
-                get(arr[1], client);
-                // runNow(() -> {
-                // try {
-                // get(arr[1], client); // all this is doing is placing put() on another
-                // thread
-                // } catch (IOException e) { // i didnt change anything else
-                // e.printStackTrace();
-                // } // try
-                // });
+                get(arr[1], nsocket);
+
             } // if
 
-            // LETS PUT IT TO THE TEST LOL
             if (arr[0].equals("put")) {
                 if (newThread) {
                     myftp.isUploading = true;
@@ -118,8 +103,7 @@ class myftp {
                                 System.out.println("Key: " + entry.getKey() + ", Value1: " + entry.getValue().getFirst()
                                         + ", Value2: " + entry.getValue().getSecond());
                             }
-                            put(arr[1]); // all this is doing is placing put() on
-                                         // another thread
+                            put(arr[1]); 
                         } catch (IOException e) { // i didnt change anything else
                             e.printStackTrace();
                         } finally {
@@ -180,7 +164,7 @@ class myftp {
                 // runNow(() -> {
                 // System.out.println(s);
                 // });
-                client.close();
+                nsocket.close();
                 break;
             } // if
         } // while
@@ -199,7 +183,12 @@ class myftp {
         while ((bytesRead = in.read(buffer)) != -1) {
             lock.lock();
             try {
-                myftp.out.write(buffer, 0, bytesRead);
+                if (bytesRead != 32) {
+                    for (int i = bytesRead; i < 32; i++) {
+                        buffer[i] = '\0';
+                    } //for
+                }
+                myftp.out.write(buffer, 0, 32);
             } finally {
                 condition.signal();
                 lock.unlock();
@@ -212,16 +201,8 @@ class myftp {
                 e.printStackTrace();
             }
         } // while
-        // byte[] nbuffer = new byte[32];
-        // for (int i = 0; i < nbuffer.length - bytesRead - 1; i++) {
-        //     nbuffer[i] = '\0';
-        // }
-        //out.write(nbuffer, 0, nbuffer.length - bytesRead - 1);
-        String delimiter = "\0";
-        out.write(delimiter.getBytes());
         in.close();
 
-        System.out.println("UPLOAD FINISHED");
     } // put
 
     private static void get(String destination, Socket s) throws IOException {

@@ -23,18 +23,22 @@ public class ClientHandler implements Runnable {
 
     private ReentrantLock lock = new ReentrantLock(true);
     private ReentrantLock syncPut = new ReentrantLock(true);
-    private final Socket socket;
+    private final Socket nsocket;
+    // private final Socket tsocket;
     private final InputStream in;
     private final OutputStream out;
+    // private final InputStream tin;
+    // private final OutputStream tout;
     private final Condition resumeUpload = lock.newCondition();
-    private final Condition nextPutRequest = lock.newCondition();
-    private final Condition commandRecieved = lock.newCondition();
     private boolean flag = false;
 
-    public ClientHandler(Socket socket) throws IOException {
-        this.socket = socket;
-        this.in = socket.getInputStream();
-        this.out = socket.getOutputStream();
+    public ClientHandler(Socket n) throws IOException {
+        this.nsocket = n;
+        //this.tsocket = t;
+        this.in = nsocket.getInputStream();
+        this.out = nsocket.getOutputStream();
+        // this.tin = tsocket.getInputStream();
+        // this.tout = tsocket.getOutputStream();
     } // constructor
 
     public void run() {
@@ -67,7 +71,7 @@ public class ClientHandler implements Runnable {
                 lock.lock();
                 System.out.println("MAIN THREAD ACQUIRED LOCK");
 
-                if (flag) {
+                while (flag) {
                     System.out.println("UPLOAD FINISHED: ALLOW WORKER TO LOCK");
                     lock.unlock(); 
                     Thread.sleep(100);
@@ -111,13 +115,13 @@ public class ClientHandler implements Runnable {
                             try {
                                 // all this is doing is placing put() on another thread
                                 // isListening = false;
-                                get(path + "/" + arr[1], socket);
+                                get(path + "/" + arr[1]);
                             } catch (IOException e) { // i didnt change anything else
                                 e.printStackTrace();
                             }
                         });
                     } else {
-                        get(path + "/" + arr[1], socket);
+                        get(path + "/" + arr[1]);
                         bw.write("myftp>");
                         bw.newLine();
                         bw.flush();
@@ -142,7 +146,7 @@ public class ClientHandler implements Runnable {
                                 syncPut.unlock();
                                 System.out.println("WORKER RELEASED LOCK");
                             }
-                        });
+                        }, "e", 0);
                     } else {
                         put(path + "/" + arr[1]);
                     } // if
@@ -221,33 +225,6 @@ public class ClientHandler implements Runnable {
                     msg = temp.getBytes();
                     out.write(msg, 0, msg.length);
                     
-                    // if (newThread) {
-                    // synchronized (lock) {
-                    // bw.write("myftp>");
-                    // bw.newLine();
-                    // }
-                    // final BufferedWriter finalBw = bw;
-                    // runNow(() -> {
-                    // try {
-                    // synchronized (lock) {
-                    // finalBw.write(listDirectory(System.getProperty("user.dir")));
-                    // finalBw.newLine();
-                    // finalBw.write("myftp>");
-                    // finalBw.newLine();
-                    // finalBw.flush();
-                    // }
-                    // } catch (IOException e) { // i didnt change anything else
-                    // e.printStackTrace();
-                    // }
-                    // });
-                    // } else {
-                    // bw.write(listDirectory(System.getProperty("user.dir")));
-                    // bw.newLine();
-                    // bw.flush();
-                    // bw.write("myftp>");
-                    // bw.newLine();
-                    // bw.flush();
-                    // } // if
                 }
 
                 if (arr[0].equals("quit")) {
@@ -256,7 +233,7 @@ public class ClientHandler implements Runnable {
                     bw.flush();
                     bw.close();
                     br.close();
-                    socket.close();
+                    nsocket.close();
                 } // if
             } // while
 
@@ -268,7 +245,7 @@ public class ClientHandler implements Runnable {
             try {
                 bw.close();
                 br.close();
-                socket.close();
+                nsocket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             } // try
@@ -280,7 +257,8 @@ public class ClientHandler implements Runnable {
     private void put(String destination) throws IOException, InterruptedException {
         System.out.println("WORKER THREAD WAITING FOR LOCK...");
         lock.lock();
-        System.out.println("WORKER ACQUIRED LOCK"); 
+        System.out.println("WORKER ACQUIRED LOCK");
+        this.flag = false; 
         
         OutputStream out = new FileOutputStream(destination);
         StringBuilder sb = new StringBuilder();
@@ -303,7 +281,7 @@ public class ClientHandler implements Runnable {
 
                 // System.out.println("worker thread acquired locked");
             } else if (s.contains(delimiter)) {
-                int delimIndex = sb.indexOf(delimiter) - 1;
+                int delimIndex = s.indexOf(delimiter);
                 out.write(buffer, 0, delimIndex);
                 break;
             } else {
@@ -324,18 +302,17 @@ public class ClientHandler implements Runnable {
     /*
      * given a filepath and socket send the file over TCP socket
      */
-    private static void get(String filepath, Socket s) throws FileNotFoundException, IOException {
+    private void get(String filepath) throws FileNotFoundException, IOException {
 
         // read stream
         File file = new File(filepath);
         InputStream in = new FileInputStream(file);
-        OutputStream out = s.getOutputStream();
 
         // read and send in chunks
         byte[] buffer = new byte[1024];
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
-            out.write(buffer, 0, bytesRead);
+            this.out.write(buffer, 0, bytesRead);
         } // while
         String delimiter = "\0";
         out.write(delimiter.getBytes());
