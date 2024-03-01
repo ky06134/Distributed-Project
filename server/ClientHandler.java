@@ -23,6 +23,8 @@ public class ClientHandler implements Runnable {
 
     private ReentrantLock lock = new ReentrantLock(true);
     private ReentrantLock syncPut = new ReentrantLock(true);
+    private ReentrantLock syncGet = new ReentrantLock(true);
+    private final Socket socket;
     private final Socket nsocket;
     private final Socket tsocket;
     private final InputStream in;
@@ -30,6 +32,8 @@ public class ClientHandler implements Runnable {
     private final InputStream tin;
     private final OutputStream tout;
     private final Condition resumeUpload = lock.newCondition();
+    private final Condition nextPutRequest = lock.newCondition();
+    private final Condition commandRecieved = lock.newCondition();
     private boolean flag = false;
 
     public ClientHandler(Socket n, Socket t) throws IOException {
@@ -107,23 +111,23 @@ public class ClientHandler implements Runnable {
                 if (arr[0].equals("get")) {
                     String path = System.getProperty("user.dir");
                     if (newThread) {
-                        bw.write("myftp>");
-                        bw.newLine();
-                        bw.flush();
                         runNow(() -> {
+                            syncGet.lock();
                             try {
-                                // all this is doing is placing put() on another thread
-                                // isListening = false;
                                 get(path + "/" + arr[1]);
+                                System.out.println("get finished");
                             } catch (IOException e) { // i didnt change anything else
                                 e.printStackTrace();
+                            } finally {
+                                this.flag = true;
+                                System.out.println("NEXT GET REQUEST SIGNAL");
+                                lock.unlock();
+                                syncGet.unlock();
+                                System.out.println("WORKER RELEASED LOCK");
                             }
                         });
                     } else {
                         get(path + "/" + arr[1]);
-                        bw.write("myftp>");
-                        bw.newLine();
-                        bw.flush();
                     } // if
                 }
 
@@ -263,7 +267,7 @@ public class ClientHandler implements Runnable {
                     bw.flush();
                     bw.close();
                     br.close();
-                    nsocket.close();
+                    socket.close();
                 } // if
             } // while
 
@@ -275,7 +279,7 @@ public class ClientHandler implements Runnable {
             try {
                 bw.close();
                 br.close();
-                nsocket.close();
+                socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             } // try
@@ -288,8 +292,7 @@ public class ClientHandler implements Runnable {
         System.out.println("WORKER THREAD WAITING FOR LOCK...");
         lock.lock();
         System.out.println("WORKER ACQUIRED LOCK");
-        this.flag = false; 
-        
+
         OutputStream out = new FileOutputStream(destination);
         StringBuilder sb = new StringBuilder();
 
@@ -315,7 +318,7 @@ public class ClientHandler implements Runnable {
 
                 // System.out.println("worker thread acquired locked");
             } else if (s.contains(delimiter)) {
-                int delimIndex = s.indexOf(delimiter);
+                int delimIndex = sb.indexOf(delimiter) - 1;
                 out.write(buffer, 0, delimIndex);
                 break;
             } else {
@@ -329,28 +332,44 @@ public class ClientHandler implements Runnable {
         } // while
         out.flush();
         out.close();
-        //nextPutRequest.signal();
-        
+        // nextPutRequest.signal();
+
     }
 
     /*
      * given a filepath and socket send the file over TCP socket
      */
     private void get(String filepath) throws FileNotFoundException, IOException {
+        System.out.println("WORKER THREAD WAITING FOR LOCK...");
+        lock.lock();
+        System.out.println("WORKER ACQUIRED LOCK");
 
         // read stream
         File file = new File(filepath);
         InputStream in = new FileInputStream(file);
 
         // read and send in chunks
-        byte[] buffer = new byte[1024];
+        byte[] buffer = new byte[32];
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
-            this.out.write(buffer, 0, bytesRead);
+            lock.lock();
+            try {
+                out.write(buffer, 0, bytesRead);
+            } finally {
+                resumeUpload.signal();
+                lock.unlock();
+            }
+            // buffer = command
+            // out.write(buffer, 0, 32);
+            try {
+                Thread.sleep(250); // this might simulate a larger file
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
         } // while
         String delimiter = "\0";
         out.write(delimiter.getBytes());
-        out.flush();
+        in.close();
         // s.shutdownOutput();
 
     } // get
