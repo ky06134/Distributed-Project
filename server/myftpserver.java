@@ -44,12 +44,30 @@ public class myftpserver {
             e.printStackTrace();
         } 
 
+        ServerSocket put_server = null;
+        try {
+            put_server = new ServerSocket(8080);
+            System.out.println("termination server ip: " + put_server.getInetAddress());
+            System.out.println("terminaton server is now online and listening on port: " + 8080);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } 
+
+        ServerSocket get_server = null;
+        try {
+            get_server = new ServerSocket(8081);
+            System.out.println("termination server ip: " + get_server.getInetAddress());
+            System.out.println("terminaton server is now online and listening on port: " + 8081);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } 
+
         while (true) {
             Socket n = n_server.accept(); // waits for connection from client
             System.out.println("Normal port connected");
             Socket t = t_server.accept();
             System.out.println("Terminate port connected");
-            runNow(new ClientHandler(n, t));
+            runNow(new ClientHandler(n, t, put_server ,get_server));
         } // while
 
     } // main

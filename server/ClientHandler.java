@@ -21,24 +21,20 @@ import java.util.concurrent.CountDownLatch;
  */
 public class ClientHandler implements Runnable {
 
-    private ReentrantLock lock = new ReentrantLock(true);
-    private ReentrantLock syncPut = new ReentrantLock(true);
-    private ReentrantLock syncGet = new ReentrantLock(true);
-    private final Socket socket;
     private final Socket nsocket;
     private final Socket tsocket;
+    private final ServerSocket putServerSocket;
+    private final ServerSocket getServerSocket;
     private final InputStream in;
     private final OutputStream out;
     private final InputStream tin;
     private final OutputStream tout;
-    private final Condition resumeUpload = lock.newCondition();
-    private final Condition nextPutRequest = lock.newCondition();
-    private final Condition commandRecieved = lock.newCondition();
-    private boolean flag = false;
 
-    public ClientHandler(Socket n, Socket t) throws IOException {
+    public ClientHandler(Socket n, Socket t, ServerSocket p, ServerSocket g) throws IOException {
         this.nsocket = n;
         this.tsocket = t;
+        getServerSocket = g;
+        putServerSocket = p;
         this.in = nsocket.getInputStream();
         this.out = nsocket.getOutputStream();
         this.tin = tsocket.getInputStream();
@@ -59,45 +55,18 @@ public class ClientHandler implements Runnable {
             bw = new BufferedWriter(writer);
 
             while (true) {
-                Thread.sleep(1000);
-                // send get/put id back to the client
+
                 String prompt = "myftp>\n";
                 byte[] msg = prompt.getBytes();
                 out.write(msg, 0, msg.length);
-                // bw.write("myftp>");
-                // bw.newLine();
-                // bw.flush();
 
                 String msgFromClient;
-                //ServerThreadPool.purge();
-                //System.out.println("MAIN WAITING FOR LOCK...");
-                lock.lock();
-                //System.out.println("MAIN THREAD ACQUIRED LOCK");
 
-                while (flag) {
-                    //System.out.println("UPLOAD FINISHED: ALLOW WORKER TO LOCK");
-                    lock.unlock(); 
-                    Thread.sleep(100);
-                    lock.lock();
-                    //System.out.println("MAIN THREAD ACQUIRED LOCK");
-                }
-                try {
-                    // msgFromClient = br.readLine();
-                    byte[] buffer = new byte[32];
-                    int i = in.read(buffer);
-                    msgFromClient = new String(buffer, 0, i);
-                    System.out.println(
-                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!message from client: " + msgFromClient);
-                } finally {
-                    resumeUpload.signal();
-                    lock.unlock();
-                    //System.out.println("MAIN THREAD RELEASED LOCK");
-                } // try
-
-                // if (msgFromClient.contains("$")) {
-                // int len = msgFromClient.length();
-                // msgFromClient = msgFromClient.substring(1, len);
-                // } //if
+                byte[] buffer = new byte[32];
+                int i = in.read(buffer);
+                msgFromClient = new String(buffer, 0, i);
+                System.out.println(
+                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!message from client: " + msgFromClient);
 
                 String arr[] = msgFromClient.split(" ");
                 int n = arr.length;
@@ -109,55 +78,11 @@ public class ClientHandler implements Runnable {
                 // System.out.println("The command is " + msgFromClient);
 
                 if (arr[0].equals("get")) {
-                    String path = System.getProperty("user.dir");
-                    if (newThread) {
-                        runNow(() -> {
-                            syncGet.lock();
-                            try {
-                                get(path + "/" + arr[1]);
-                                System.out.println("get finished");
-                            } catch (IOException e) { // i didnt change anything else
-                                e.printStackTrace();
-                            } finally {
-                                this.flag = true;
-                                System.out.println("NEXT GET REQUEST SIGNAL");
-                                lock.unlock();
-                                syncGet.unlock();
-                                System.out.println("WORKER RELEASED LOCK");
-                            }
-                        });
-                    } else {
-                        get(path + "/" + arr[1]);
-                    } // if
+                    runNow(new GetWorker(arr[1], getServerSocket));
                 }
 
-                // TESTING HERE TOO
                 if (arr[0].equals("put")) {
-                    String path = System.getProperty("user.dir");
-                    if (newThread) {
-                        //create thread id and add to hashmap, send id to client through tport
-                        Integer threadID = ServerThreadPool.generateID();
-                        String temp = "WORKER ID:  " + threadID.toString() + "\n";
-                        msg = temp.getBytes();
-                        out.write(msg, 0, msg.length);
-                        ServerThreadPool.runNow(() -> { 
-                            syncPut.lock();                                                                           
-                            try {
-                                put(path + "/" + arr[1]);
-                                System.out.println("put finished");
-                            } catch (IOException | InterruptedException e) { // i didnt change anything else
-                                e.printStackTrace();
-                            } finally {
-                                this.flag = true;
-                                System.out.println("NEXT PUT REQUEST SIGNAL");
-                                lock.unlock();
-                                syncPut.unlock();
-                                System.out.println("WORKER RELEASED LOCK");
-                            }
-                        }, arr[0], threadID);
-                    } else {
-                        put(path + "/" + arr[1]);
-                    } // if
+                    runNow(new PutWorker(arr[1], putServerSocket));
                 } // if
 
                 if (arr[0].equals("delete")) {
@@ -178,27 +103,15 @@ public class ClientHandler implements Runnable {
                 }
                 if (arr[0].equals("cd")) {
                     String path = System.getProperty("user.dir");
-                    if (newThread) {
-                        bw.write("myftp>");
-                        bw.newLine();
-                        bw.flush();
-                        runNow(() -> {
-                            if (arr[1].equals("..")) {
-                                System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
-                            } else {
-                                System.setProperty("user.dir", path + "/" + arr[1]);
-                            }
-                        });
+
+                    if (arr[1].equals("..")) {
+                        System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
                     } else {
-                        if (arr[1].equals("..")) {
-                            System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
-                        } else {
-                            System.setProperty("user.dir", path + "/" + arr[1]);
-                        }
-                        bw.write("myftp>");
-                        bw.newLine();
-                        bw.flush();
-                    } // if
+                        System.setProperty("user.dir", path + "/" + arr[1]);
+                    }
+                    bw.write("myftp>");
+                    bw.newLine();
+                    bw.flush();
                     bw.write(System.getProperty("user.dir"));
                     bw.newLine();
                     bw.flush();
@@ -206,19 +119,11 @@ public class ClientHandler implements Runnable {
 
                 if (arr[0].equals("mkdir")) {
                     String path = System.getProperty("user.dir");
-                    if (newThread) {
-                        bw.write("myftp>");
-                        bw.newLine();
-                        bw.flush();
-                        runNow(() -> {
-                            makeDirectory(path + "/" + arr[1]);
-                        });
-                    } else {
-                        makeDirectory(path + "/" + arr[1]);
-                        bw.write("myftp>");
-                        bw.newLine();
-                        bw.flush();
-                    } // if
+                    makeDirectory(path + "/" + arr[1]);
+                    bw.write("myftp>");
+                    bw.newLine();
+                    bw.flush();
+
                 }
 
                 if (arr[0].equals("pwd")) {
@@ -232,32 +137,10 @@ public class ClientHandler implements Runnable {
                     String temp = listDirectory(System.getProperty("user.dir")) + "\n";
                     msg = temp.getBytes();
                     out.write(msg, 0, msg.length);
-                    
+
                 }
 
-                /**lets play a game of what if
-                     * 1. what if terminate in queue? easy. remove from hashmap, no cleanup
-                     * 2. what if terminate while running (while holding lock)? 
-                     *      - must give up lock to next worker 
-                     *      - must clean buffer
-                     *      - must cleant the stream 
-                     */
                 if (arr[0].equals("terminate")) {
-                    byte[] buffer = new byte[32];
-                    int bytesRead = this.tin.read(buffer);
-                    String s = new String(buffer, 0, bytesRead);
-                    Integer i = Integer.parseInt(s);
-                    Thread t = ServerThreadPool.getThread(i);
-                    System.out.println(t.getState());
-                    if (t.getState() == Thread.State.BLOCKED) {
-                        
-                    } else if (t.getState() == Thread.State.RUNNABLE) {
-                        t.interrupt();
-                    } //if
-                    String temp = "WORKER " + s + " TERMINATED\n";
-                    msg = temp.getBytes();
-                    out.write(msg, 0, msg.length);
-                    
 
                 }
 
@@ -267,112 +150,22 @@ public class ClientHandler implements Runnable {
                     bw.flush();
                     bw.close();
                     br.close();
-                    socket.close();
+
                 } // if
             } // while
 
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         } finally {
             try {
                 bw.close();
                 br.close();
-                socket.close();
             } catch (IOException e) {
                 e.printStackTrace();
             } // try
         } // try
 
     } // run
-
-    // made changes to put for test
-    private void put(String destination) throws IOException, InterruptedException {
-        System.out.println("WORKER THREAD WAITING FOR LOCK...");
-        lock.lock();
-        System.out.println("WORKER ACQUIRED LOCK");
-
-        OutputStream out = new FileOutputStream(destination);
-        StringBuilder sb = new StringBuilder();
-
-        final String delimiter = "\0"; // Define a delimiter
-        // final String delimiter2 = "|";
-        // String command = "";
-
-        // read and write to a file
-        byte[] buffer = new byte[32]; // <----changed for test
-        int bytesRead;
-        while ((bytesRead = this.in.read(buffer)) != -1) {
-            String s = new String(buffer, 0, bytesRead);
-            //System.out.println(s);
-            if (Thread.interrupted()) {
-                System.out.println("WE OUT boooooooooooooooooooooy");
-                break;
-            } //if
-            if (s.contains("$")) {
-
-                System.err.println("AWAITING FOR UPLOAD SIGNAL...");
-                resumeUpload.await();
-                System.out.println("UPLOAD RESUMED");
-
-                // System.out.println("worker thread acquired locked");
-            } else if (s.contains(delimiter)) {
-                int delimIndex = sb.indexOf(delimiter) - 1;
-                out.write(buffer, 0, delimIndex);
-                break;
-            } else {
-                out.write(buffer, 0, bytesRead);
-            }
-            try {
-                Thread.sleep(250); // this might simulate a larger file
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        } // while
-        out.flush();
-        out.close();
-        // nextPutRequest.signal();
-
-    }
-
-    /*
-     * given a filepath and socket send the file over TCP socket
-     */
-    private void get(String filepath) throws FileNotFoundException, IOException {
-        System.out.println("WORKER THREAD WAITING FOR LOCK...");
-        lock.lock();
-        System.out.println("WORKER ACQUIRED LOCK");
-
-        // read stream
-        File file = new File(filepath);
-        InputStream in = new FileInputStream(file);
-
-        // read and send in chunks
-        byte[] buffer = new byte[32];
-        int bytesRead;
-        while ((bytesRead = in.read(buffer)) != -1) {
-            lock.lock();
-            try {
-                out.write(buffer, 0, bytesRead);
-            } finally {
-                resumeUpload.signal();
-                lock.unlock();
-            }
-            // buffer = command
-            // out.write(buffer, 0, 32);
-            try {
-                Thread.sleep(250); // this might simulate a larger file
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        } // while
-        String delimiter = "\0";
-        out.write(delimiter.getBytes());
-        in.close();
-        // s.shutdownOutput();
-
-    } // get
 
     private static void delete(String filename) {
         File file = new File(filename);
