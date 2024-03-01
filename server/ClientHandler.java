@@ -22,15 +22,14 @@ import java.util.concurrent.CountDownLatch;
 public class ClientHandler implements Runnable {
 
     private ReentrantLock lock = new ReentrantLock(true);
+    private ReentrantLock syncPut = new ReentrantLock(true);
     private final Socket socket;
     private final InputStream in;
     private final OutputStream out;
     private final Condition resumeUpload = lock.newCondition();
     private final Condition nextPutRequest = lock.newCondition();
     private final Condition commandRecieved = lock.newCondition();
-    private boolean isDownloading = false;
     private boolean flag = false;
-    private int threadCount = 0;
 
     public ClientHandler(Socket socket) throws IOException {
         this.socket = socket;
@@ -67,6 +66,14 @@ public class ClientHandler implements Runnable {
                 System.out.println("MAIN WAITING FOR LOCK...");
                 lock.lock();
                 System.out.println("MAIN THREAD ACQUIRED LOCK");
+
+                if (flag) {
+                    System.out.println("UPLOAD FINISHED: ALLOW WORKER TO LOCK");
+                    lock.unlock(); 
+                    Thread.sleep(100);
+                    lock.lock();
+                    System.out.println("MAIN THREAD ACQUIRED LOCK");
+                }
                 try {
                     // msgFromClient = br.readLine();
                     byte[] buffer = new byte[32];
@@ -121,35 +128,18 @@ public class ClientHandler implements Runnable {
                 if (arr[0].equals("put")) {
                     String path = System.getProperty("user.dir");
                     if (newThread) {
-                        this.threadCount++;
-                        ServerThreadPool.runNow(() -> {                           
-                            System.out.println("WORKER THREAD WAITING FOR LOCK...");
-                            lock.lock();
-                            System.out.println("WORKER ACQUIRED LOCK");
-                            //While the previous thread is running we give up lock to main
-                            //when previous thread finishes we lock 
-                            while (this.flag) {
-                                lock.unlock();
-                                try {
-                                    Thread.sleep(100);
-                                } catch (InterruptedException e) {
-                                    e.printStackTrace();
-                                }
-                                lock.lock();
-                            }   
-                            this.flag = true;                        
+                        ServerThreadPool.runNow(() -> { 
+                            syncPut.lock();                                                                           
                             try {
                                 put(path + "/" + arr[1]);
                                 System.out.println("put finished");
                             } catch (IOException | InterruptedException e) { // i didnt change anything else
                                 e.printStackTrace();
                             } finally {
-                                this.threadCount--;
-                                isDownloading = this.threadCount > 0;
-                                this.flag = false;
-                                nextPutRequest.signal();
+                                this.flag = true;
                                 System.out.println("NEXT PUT REQUEST SIGNAL");
                                 lock.unlock();
+                                syncPut.unlock();
                                 System.out.println("WORKER RELEASED LOCK");
                             }
                         });
@@ -221,39 +211,16 @@ public class ClientHandler implements Runnable {
 
                 if (arr[0].equals("pwd")) {
                     String path = System.getProperty("user.dir");
-                    final BufferedWriter finalBw = bw;
-                    if (newThread) {
-                        bw.write("myftp>");
-                        bw.newLine();
-                        bw.flush();
-                        runNow(() -> {
-                            try {
-                                // all this is doing is placing put() on another thread
-                                // isListening = false;
-                                finalBw.write(path);
-                                finalBw.newLine();
-                                finalBw.flush();
-                                finalBw.write("myftp>");
-                                finalBw.newLine();
-                                finalBw.flush();
-                            } catch (IOException e) { // i didnt change anything else
-                                e.printStackTrace();
-                            }
-                        });
-                    } else {
-                        bw.write(path);
-                        bw.newLine();
-                        bw.flush();
-                        bw.write("myftp>");
-                        bw.newLine();
-                        bw.flush();
-                    } // if
+                    path += "\n";
+                    msg = path.getBytes();
+                    out.write(msg, 0, msg.length);
                 }
 
                 if (arr[0].equals("ls")) {
-                    bw.write(listDirectory(System.getProperty("user.dir")));
-                    bw.newLine();
-                    bw.flush();
+                    String temp = listDirectory(System.getProperty("user.dir")) + "\n";
+                    msg = temp.getBytes();
+                    out.write(msg, 0, msg.length);
+                    
                     // if (newThread) {
                     // synchronized (lock) {
                     // bw.write("myftp>");
@@ -310,7 +277,10 @@ public class ClientHandler implements Runnable {
     } // run
 
     // made changes to put for test
-    private synchronized void put(String destination) throws IOException, InterruptedException {
+    private void put(String destination) throws IOException, InterruptedException {
+        System.out.println("WORKER THREAD WAITING FOR LOCK...");
+        lock.lock();
+        System.out.println("WORKER ACQUIRED LOCK"); 
         
         OutputStream out = new FileOutputStream(destination);
         StringBuilder sb = new StringBuilder();
@@ -333,8 +303,8 @@ public class ClientHandler implements Runnable {
 
                 // System.out.println("worker thread acquired locked");
             } else if (s.contains(delimiter)) {
-                // int delimIndex = sb.indexOf(delimiter) - 1;
-                out.write(buffer, 0, bytesRead - 1);
+                int delimIndex = sb.indexOf(delimiter) - 1;
+                out.write(buffer, 0, delimIndex);
                 break;
             } else {
                 out.write(buffer, 0, bytesRead);

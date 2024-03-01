@@ -9,7 +9,8 @@ import java.util.concurrent.locks.ReentrantLock;
 // Client class 
 class myftp {
 
-    private static final Lock lock = new ReentrantLock();
+    private static final ReentrantLock lock = new ReentrantLock(true);
+    private static final ReentrantLock syncPut = new ReentrantLock(true);
     private static final Condition condition = lock.newCondition();
     private static Socket client;
     private static InputStream in;
@@ -53,7 +54,7 @@ class myftp {
                     e.printStackTrace();
                 }
             } //if
-            System.out.println("MAIN THREAD ACQUIRED LOCK");
+            //System.out.println("MAIN THREAD ACQUIRED LOCK");
             try {
                 if (isUploading) {
                     // bw.write("$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$");
@@ -81,7 +82,7 @@ class myftp {
                 // }
                 // condition.signal();
                 lock.unlock();
-                System.out.println("MAIN THREAD RELEASED LOCK");
+                //System.out.println("MAIN THREAD RELEASED LOCK");
             } // try
 
             String arr[] = cmd.split(" ");
@@ -111,6 +112,7 @@ class myftp {
                     final long tID = ClientThreadPool.getThreadId() + 1;
                     ClientThreadPool.runNow(() -> {
                         System.out.println("WORKER THREAD CREATED");
+                        syncPut.lock();
                         try {
                             for (Map.Entry<Long, Pair<String, Thread>> entry : ClientThreadPool.getThreadPool().entrySet()) {
                                 System.out.println("Key: " + entry.getKey() + ", Value1: " + entry.getValue().getFirst()
@@ -125,6 +127,7 @@ class myftp {
                             if (ClientThreadPool.getThreadPool().isEmpty()) {
                                 myftp.isUploading = false;
                             }
+                            syncPut.unlock();
                         }
                     }, cmd, currentThreadId);
 
@@ -209,6 +212,11 @@ class myftp {
                 e.printStackTrace();
             }
         } // while
+        // byte[] nbuffer = new byte[32];
+        // for (int i = 0; i < nbuffer.length - bytesRead - 1; i++) {
+        //     nbuffer[i] = '\0';
+        // }
+        //out.write(nbuffer, 0, nbuffer.length - bytesRead - 1);
         String delimiter = "\0";
         out.write(delimiter.getBytes());
         in.close();
