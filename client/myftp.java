@@ -106,7 +106,6 @@ class myftp {
                 if (newThread) {
                     myftp.isUploading = true;
                     final long currentThreadId = Thread.currentThread().getId();
-                    final long tID = ClientThreadPool.getThreadId() + 1;
                     ClientThreadPool.runNow(() -> {
                         System.out.println("WORKER THREAD CREATED");
                         syncGet.lock();
@@ -121,7 +120,7 @@ class myftp {
                         } catch (IOException | InterruptedException e) { // i didnt change anything else
                             e.printStackTrace();
                         } finally {
-                            ClientThreadPool.remove(currentThreadId + tID);
+                            ClientThreadPool.remove(currentThreadId);
                             if (ClientThreadPool.getThreadPool().isEmpty()) {
                                 myftp.isUploading = false;
                             }
