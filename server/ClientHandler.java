@@ -56,9 +56,9 @@ public class ClientHandler implements Runnable {
 
             while (true) {
 
-                String prompt = "myftp>\n";
-                byte[] msg = prompt.getBytes();
-                out.write(msg, 0, msg.length);
+                bw.write("myftp>");
+                bw.newLine();
+                bw.flush();
 
                 String msgFromClient;
 
@@ -78,16 +78,30 @@ public class ClientHandler implements Runnable {
                 System.out.println("The command is " + msgFromClient);
 
                 if (arr[0].equals("get")) {
-                    runNow(new GetWorker(arr[1], getServerSocket));
-                }
+                    if (newThread) {
+                        Integer id = ServerThreadPool.generateID();
+                        bw.write(id.toString());
+                        bw.newLine();
+                        bw.flush();
+                        GetWorker gw = new GetWorker(arr[1], getServerSocket, id);
+                        runNow(gw);
+                    } else {
+                        get(arr[1]);
+                    } //if
+                } //if
 
                 if (arr[0].equals("put")) {
-                    PutWorker pw = new PutWorker(arr[1], putServerSocket);
-                    Integer id = pw.getId();
-                    bw.write("Worker Id: " + id);
-                    bw.newLine();
-                    bw.flush();
-                    runNow(pw);
+                    if (newThread) {
+                        Integer id = ServerThreadPool.generateID();
+                        bw.write(id.toString());
+                        bw.newLine();
+                        bw.flush();
+                        PutWorker pw = new PutWorker(arr[1], getServerSocket, id);
+                        runNow(pw);
+                    } else {
+                        put(arr[1]);
+                        System.out.println("WE OUT");
+                    } //if
                 } // if
 
                 if (arr[0].equals("delete")) {
@@ -133,20 +147,21 @@ public class ClientHandler implements Runnable {
 
                 if (arr[0].equals("pwd")) {
                     String path = System.getProperty("user.dir");
-                    path += "\n";
-                    msg = path.getBytes();
-                    out.write(msg, 0, msg.length);
+                    bw.write(path);
+                    bw.newLine();
+                    bw.flush();
                 }
 
                 if (arr[0].equals("ls")) {
-                    String temp = listDirectory(System.getProperty("user.dir")) + "\n";
-                    msg = temp.getBytes();
-                    out.write(msg, 0, msg.length);
-
+                    String temp = listDirectory(System.getProperty("user.dir"));
+                    bw.write(temp);
+                    bw.newLine();
+                    bw.flush();
                 }
 
                 if (arr[0].equals("terminate")) {
                     ServerThreadPool.getThread(Integer.valueOf(arr[1])).terminate();
+                    ServerThreadPool.remove(Integer.valueOf(arr[1]));
                 }
 
                 if (arr[0].equals("quit")) {
@@ -195,6 +210,37 @@ public class ClientHandler implements Runnable {
         }
         return res;
     }
+
+    private void put(String destination) throws IOException {
+        OutputStream out = new FileOutputStream(destination);
+        byte[] buffer = new byte[32]; 
+        int bytesRead;
+        while ((bytesRead = in.read(buffer)) != -1) {  
+            String s = new String(buffer);
+            if (s.contains("\0")) {
+                int index = s.indexOf("\0"); 
+                out.write(buffer, 0, index);
+                break;
+            } else {
+                out.write(buffer, 0, bytesRead);
+            }   
+        } // while   
+
+    } //put
+
+    private void get(String filepath) throws FileNotFoundException, IOException {
+        File file = new File(filepath);
+        InputStream in = new FileInputStream(file);
+        byte[] buffer = new byte[32];
+        int bytesRead;
+        while ((bytesRead = in.read(buffer)) != -1) {
+            out.write(buffer, 0, bytesRead);      
+        } // while
+        String delimiter = "\0";
+        out.write(delimiter.getBytes());
+
+    } // get
+
 
     // creates a new thread
     public static void runNow(Runnable target) {
