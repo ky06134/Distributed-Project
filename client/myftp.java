@@ -65,11 +65,11 @@ class myftp {
                     String s = br.readLine();
                     System.out.println("Worker ID: " + s);
                     System.out.println(Integer.valueOf(s));
-                    runNow(new ClientGetWorker(machineName, arr[1], Integer.valueOf(s))); 
+                    runNow(new ClientGetWorker(machineName, arr[1], Integer.valueOf(s)));
                 } else {
                     get1(arr[1]);
                 }
-                
+
             } // if
 
             if (arr[0].equals("put")) {
@@ -77,7 +77,7 @@ class myftp {
                     String s = br.readLine();
                     System.out.println("Worker ID: " + s);
                     System.out.println(Integer.valueOf(s));
-                    runNow(new ClientPutWorker(machineName, arr[1], Integer.valueOf(s))); 
+                    runNow(new ClientPutWorker(machineName, arr[1], Integer.valueOf(s)));
                 } else {
                     put1(arr[1]);
                     System.out.println("WE OUT");
@@ -91,7 +91,7 @@ class myftp {
             if (arr[0].equals("ls")) {
                 String s = br.readLine();
                 System.out.println(s);
- 
+
             }
 
             if (arr[0].equals("cd")) {
@@ -119,29 +119,29 @@ class myftp {
                 String s = br.readLine();
                 System.out.println(s);
 
-                client.close();
+                nsocket.close();
+                tsocket.close();
                 break;
             } // if
         } // while
     } // main
 
-
     private static void get1(String destination) throws IOException {
         OutputStream out = new FileOutputStream(destination);
-        byte[] buffer = new byte[32]; 
+        byte[] buffer = new byte[32];
         int bytesRead;
-        while ((bytesRead = in.read(buffer)) != -1) {  
+        while ((bytesRead = in.read(buffer)) != -1) {
             String s = new String(buffer);
             if (s.contains("\0")) {
-                int index = s.indexOf("\0"); 
+                int index = s.indexOf("\0");
                 out.write(buffer, 0, index);
                 break;
             } else {
                 out.write(buffer, 0, bytesRead);
-            }   
-        } // while   
+            }
+        } // while
         out.close();
-    } //put
+    } // put
 
     private static void put1(String filepath) throws FileNotFoundException, IOException {
         File file = new File(filepath);
@@ -149,13 +149,12 @@ class myftp {
         byte[] buffer = new byte[32];
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
-            out.write(buffer, 0, bytesRead);      
+            out.write(buffer, 0, bytesRead);
         } // while
         String delimiter = "\0";
         out.write(delimiter.getBytes());
         in.close();
     } // get
-
 
     public static void runNow(Runnable target) {
         Thread t = new Thread(target);

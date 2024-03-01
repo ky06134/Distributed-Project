@@ -56,7 +56,7 @@ public class ClientHandler implements Runnable {
 
             while (true) {
 
-                 String prompt = "myftp>\n";
+                String prompt = "myftp>\n";
                 byte[] msg = prompt.getBytes();
                 out.write(msg, 0, msg.length);
 
@@ -87,8 +87,8 @@ public class ClientHandler implements Runnable {
                         runNow(gw);
                     } else {
                         get1(arr[1]);
-                    } //if
-                } //if
+                    } // if
+                } // if
 
                 if (arr[0].equals("put")) {
                     if (newThread) {
@@ -96,20 +96,20 @@ public class ClientHandler implements Runnable {
                         bw.write(id.toString());
                         bw.newLine();
                         bw.flush();
-                        //System.out.println("before error");
+                        // System.out.println("before error");
                         PutWorker pw = new PutWorker(arr[1], putServerSocket, id);
                         System.out.println("PutWorked");
                         runNow(pw);
                     } else {
                         put1(arr[1]);
                         System.out.println("WE OUT");
-                    } //if
+                    } // if
                 } // if
 
                 if (arr[0].equals("delete")) {
                     String path = System.getProperty("user.dir");
                     delete(path + "/" + arr[1]);
-                    
+
                 }
                 if (arr[0].equals("cd")) {
                     String path = System.getProperty("user.dir");
@@ -155,7 +155,6 @@ public class ClientHandler implements Runnable {
                     bw.flush();
                     bw.close();
                     br.close();
-
                 } // if
             } // while
 
@@ -198,21 +197,21 @@ public class ClientHandler implements Runnable {
 
     private void put1(String destination) throws IOException {
         OutputStream out = new FileOutputStream(destination);
-        byte[] buffer = new byte[32]; 
+        byte[] buffer = new byte[32];
         int bytesRead;
-        while ((bytesRead = in.read(buffer)) != -1) {  
+        while ((bytesRead = in.read(buffer)) != -1) {
             String s = new String(buffer);
             if (s.contains("\0")) {
-                int index = s.indexOf("\0"); 
+                int index = s.indexOf("\0");
                 out.write(buffer, 0, index);
                 break;
             } else {
                 out.write(buffer, 0, bytesRead);
-            }   
-        } // while   
+            }
+        } // while
         out.close();
 
-    } //put
+    } // put
 
     private void get1(String filepath) throws FileNotFoundException, IOException {
         File file = new File(filepath);
@@ -220,14 +219,13 @@ public class ClientHandler implements Runnable {
         byte[] buffer = new byte[32];
         int bytesRead;
         while ((bytesRead = in.read(buffer)) != -1) {
-            out.write(buffer, 0, bytesRead);      
+            out.write(buffer, 0, bytesRead);
         } // while
         String delimiter = "\0";
         out.write(delimiter.getBytes());
         in.close();
 
     } // get
-
 
     // creates a new thread
     public static void runNow(Runnable target) {
