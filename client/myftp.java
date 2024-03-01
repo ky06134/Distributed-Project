@@ -22,12 +22,16 @@ class myftp {
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        Integer port = 0;
+        Integer nport = 0;
+        Integer tport = 0;
         String machineName = "";
+        Socket nsocket;
+        Socket tsocket;
 
         try {
             machineName = args[0];
-            port = Integer.valueOf(args[1]); // grab port from command line arg
+            nport = Integer.valueOf(args[1]); // grab port from command line arg
+            tport = Integer.valueOf(args[2]); // grab port from command line arg
         } catch (NumberFormatException e) {
             System.out.println("Bad arguments");
             System.exit(0);
@@ -148,7 +152,7 @@ class myftp {
                         } catch (IOException | InterruptedException e) { // i didnt change anything else
                             e.printStackTrace();
                         } finally {
-                            ClientThreadPool.remove(currentThreadId + tID);
+                            ClientThreadPool.remove(currentThreadId);
                             if (ClientThreadPool.getThreadPool().isEmpty()) {
                                 myftp.isUploading = false;
                             }
