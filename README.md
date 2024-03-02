@@ -1,4 +1,4 @@
-# Distributed-Project 1
+# Distributed-Project 2
 
 Kevin Yang
 Ethan Pham
