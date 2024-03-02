@@ -66,7 +66,7 @@ public class ClientHandler implements Runnable {
                 int i = in.read(buffer);
                 msgFromClient = new String(buffer, 0, i);
                 System.out.println(
-                        "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!message from client: " + msgFromClient);
+                        "!!!message from client: " + msgFromClient);
 
                 String arr[] = msgFromClient.split(" ");
                 int n = arr.length;
@@ -102,7 +102,7 @@ public class ClientHandler implements Runnable {
                         runNow(pw);
                     } else {
                         put1(arr[1]);
-                        System.out.println("WE OUT");
+                        //System.out.println("WE OUT");
                     } // if
                 } // if
 

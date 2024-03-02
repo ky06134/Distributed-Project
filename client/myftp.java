@@ -80,7 +80,7 @@ class myftp {
                     runNow(new ClientPutWorker(machineName, arr[1], Integer.valueOf(s)));
                 } else {
                     put1(arr[1]);
-                    System.out.println("WE OUT");
+                    //System.out.println("WE OUT");
                 }
             } // if
 
