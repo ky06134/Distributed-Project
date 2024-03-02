@@ -29,7 +29,7 @@ public class myftpserver {
         ServerSocket n_server = null;
         try {
             n_server = new ServerSocket(nport);
-            System.out.println("normal server ip: " + n_server.getInetAddress());
+            //System.out.println("normal server ip: " + n_server.getInetAddress());
             System.out.println("normal server is now online and listening on port: " + nport);
         } catch (IOException e) {
             e.printStackTrace();
@@ -38,7 +38,7 @@ public class myftpserver {
         ServerSocket t_server = null;
         try {
             t_server = new ServerSocket(tport);
-            System.out.println("termination server ip: " + t_server.getInetAddress());
+            //System.out.println("termination server ip: " + t_server.getInetAddress());
             System.out.println("terminaton server is now online and listening on port: " + tport);
         } catch (IOException e) {
             e.printStackTrace();
@@ -47,8 +47,8 @@ public class myftpserver {
         ServerSocket put_server = null;
         try {
             put_server = new ServerSocket(8080);
-            System.out.println("termination server ip: " + put_server.getInetAddress());
-            System.out.println("terminaton server is now online and listening on port: " + 8080);
+            //System.out.println("termination server ip: " + put_server.getInetAddress());
+            //System.out.println("terminaton server is now online and listening on port: " + 8080);
         } catch (IOException e) {
             e.printStackTrace();
         } 
@@ -56,8 +56,8 @@ public class myftpserver {
         ServerSocket get_server = null;
         try {
             get_server = new ServerSocket(8081);
-            System.out.println("termination server ip: " + get_server.getInetAddress());
-            System.out.println("terminaton server is now online and listening on port: " + 8081);
+            //System.out.println("termination server ip: " + get_server.getInetAddress());
+            //System.out.println("terminaton server is now online and listening on port: " + 8081);
         } catch (IOException e) {
             e.printStackTrace();
         } 
