@@ -7,6 +7,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.nio.ReadOnlyBufferException;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class PutWorker implements Worker, Runnable {
 
@@ -15,25 +18,35 @@ public class PutWorker implements Worker, Runnable {
     InputStream in;
     boolean killswitch = false;
     Integer id;
+    Lock lock = new ReentrantLock(true);
 
     public PutWorker(String destination, ServerSocket putServer, Integer id) throws IOException {
         this.destination = destination;
         this.putSocket = putServer.accept();
         this.in = putSocket.getInputStream();
         this.id = id;
+        if (LockManager.get(this.destination) == null) {
+            LockManager.put(this.destination, lock);
+        } else {
+            this.lock = LockManager.get(this.destination);
+        }
         ServerThreadPool.put(this.id, this);
     }
 
     @Override
     public void run() {
+        this.lock.lock();
         try {
-            put(destination);
+            put(this.destination);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            lock.unlock();
+            LockManager.remove(this.destination);
         }
     }
     
-    private void put(String destination) throws IOException {
+    private synchronized void put(String destination) throws IOException {
         //System.out.println("made it to server put");
         File file = new File(destination);
         OutputStream out = new FileOutputStream(destination);

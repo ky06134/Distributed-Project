@@ -1,9 +1,6 @@
 import java.io.*;
 import java.net.*;
-import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.CountDownLatch;
 
 /**
  * Some burning thoughts...
@@ -110,8 +107,14 @@ public class ClientHandler implements Runnable {
 
                 if (arr[0].equals("delete")) {
                     String path = System.getProperty("user.dir");
-                    delete(path + "/" + arr[1]);
-
+                    String filepath = path + "\\" + arr[1];
+                    Lock lock = LockManager.get(filepath);
+                    lock.lock();
+                    try {
+                        delete(filepath);
+                    } finally {
+                        lock.unlock();
+                    }
                 }
                 if (arr[0].equals("cd")) {
                     String path = System.getProperty("user.dir");
@@ -173,9 +176,11 @@ public class ClientHandler implements Runnable {
 
     } // run
 
-    private static void delete(String filename) {
+    private static void delete(String filename) throws FileNotFoundException, IOException {
         File file = new File(filename);
-        file.delete();
+        synchronized(file) {
+            file.delete();
+        }
     } // delete
 
     private static void makeDirectory(String directoryName) {

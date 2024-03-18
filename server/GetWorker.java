@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 public class GetWorker implements Worker, Runnable {
 
@@ -14,24 +16,34 @@ public class GetWorker implements Worker, Runnable {
     OutputStream out;
     boolean killswitch = false;
     Integer id;
+    Lock lock = new ReentrantLock(true);
 
     public GetWorker(String filepath, ServerSocket getServer, Integer id) throws IOException {
         this.filepath = filepath;
         this.getSocket = getServer.accept();
         this.out = getSocket.getOutputStream();
         this.id = id;
+        if (LockManager.get(filepath) == null) {
+            LockManager.put(filepath, lock);
+        } else {
+            this.lock = LockManager.get(filepath);
+        }
         ServerThreadPool.put(this.id, this);
-    } 
+    }
 
     @Override
     public void run() {
+        this.lock.lock();
         try {
-            get(filepath);
+            get(this.filepath);
         } catch (IOException e) {
             e.printStackTrace();
+        } finally {
+            lock.unlock();
+            LockManager.remove(this.filepath);
         }
     }
-    
+
     private void get(String filepath) throws FileNotFoundException, IOException {
         File file = new File(filepath);
         InputStream in = new FileInputStream(file);
@@ -42,7 +54,7 @@ public class GetWorker implements Worker, Runnable {
             try {
                 if (killswitch) {
                     Thread.currentThread().interrupt();
-                }      
+                }
                 Thread.sleep(250); // this might simulate a larger file
             } catch (InterruptedException e) {
                 break;
