@@ -60,6 +60,7 @@ public class GetWorker implements Worker, Runnable {
                 break;
             }
         } // while
+        System.out.println("yay");
         in.close();
 
     } // get

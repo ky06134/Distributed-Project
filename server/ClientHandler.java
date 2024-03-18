@@ -178,9 +178,7 @@ public class ClientHandler implements Runnable {
 
     private static void delete(String filename) throws FileNotFoundException, IOException {
         File file = new File(filename);
-        synchronized(file) {
-            file.delete();
-        }
+        file.delete();
     } // delete
 
     private static void makeDirectory(String directoryName) {

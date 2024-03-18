@@ -27,27 +27,29 @@ public class PutWorker implements Worker, Runnable {
         this.id = id;
         if (LockManager.get(this.destination) == null) {
             LockManager.put(this.destination, lock);
+            System.out.println("Create new lock");
         } else {
             this.lock = LockManager.get(this.destination);
+            System.out.println("Get existing lock");
         }
         ServerThreadPool.put(this.id, this);
     }
 
     @Override
     public void run() {
+        System.out.println("locking...");
         this.lock.lock();
+        System.out.println("lock acquired");
         try {
             put(this.destination);
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
-            lock.unlock();
-            LockManager.remove(this.destination);
+            
         }
     }
     
-    private synchronized void put(String destination) throws IOException {
-        //System.out.println("made it to server put");
+    private void put(String destination) throws IOException {
         File file = new File(destination);
         OutputStream out = new FileOutputStream(destination);
         byte[] buffer = new byte[32]; 
@@ -57,7 +59,7 @@ public class PutWorker implements Worker, Runnable {
             try {
                 if (killswitch) {
                     Thread.currentThread().interrupt();
-                }               
+                }             
                 Thread.sleep(250); // this might simulate a larger file
             } catch (InterruptedException e) {
                 out.flush();
@@ -65,9 +67,13 @@ public class PutWorker implements Worker, Runnable {
                 file.delete();
                 break;
             }
-        } // while    
+        } // while 
+        System.out.println("unlocking...");
+        this.lock.unlock();
+        System.out.println("lock released");
+        LockManager.remove(this.destination);  
         out.flush();
-        out.close();
+        out.close();       
     }
 
     public void terminate() {
