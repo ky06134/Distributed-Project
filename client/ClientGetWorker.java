@@ -7,7 +7,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class ClientGetWorker implements Worker, Runnable {
+public class ClientGetWorker implements ClientWorker, Runnable {
 
     Socket gsocket; 
     InputStream in;
@@ -58,6 +58,7 @@ public class ClientGetWorker implements Worker, Runnable {
 
     }
 
+    @Override
     public void terminate() {
         this.killswitch = true;
     }

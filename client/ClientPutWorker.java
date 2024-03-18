@@ -6,7 +6,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 
-public class ClientPutWorker implements Worker, Runnable {
+public class ClientPutWorker implements ClientWorker, Runnable {
 
     Socket psocket; 
     OutputStream out;
@@ -53,6 +53,7 @@ public class ClientPutWorker implements Worker, Runnable {
         in.close();
     } // put
 
+    @Override
     public void terminate() {
         this.killswitch = true;
     }
