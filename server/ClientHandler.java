@@ -78,30 +78,32 @@ public class ClientHandler implements Runnable {
                 System.out.println("The command is " + msgFromClient);
 
                 if (arr[0].equals("get")) {
+                    String path = System.getProperty("user.dir");
                     if (newThread) {
                         Integer id = ServerThreadPool.generateID();
                         bw.write(id.toString());
                         bw.newLine();
                         bw.flush();
-                        GetWorker gw = new GetWorker(arr[1], getServerSocket, id);
+                        GetWorker gw = new GetWorker(path + "\\" + arr[1], getServerSocket, id);
                         runNow(gw);
                     } else {
-                        get1(arr[1]);
+                        get1(path + "\\" + arr[1]);
                     } // if
                 } // if
 
                 if (arr[0].equals("put")) {
+                    String path = System.getProperty("user.dir");
                     if (newThread) {
                         Integer id = ServerThreadPool.generateID();
                         bw.write(id.toString());
                         bw.newLine();
                         bw.flush();
                         // System.out.println("before error");
-                        PutWorker pw = new PutWorker(arr[1], putServerSocket, id);
+                        PutWorker pw = new PutWorker(path + "\\" + arr[1], putServerSocket, id);
                         System.out.println("PutWorked");
                         runNow(pw);
                     } else {
-                        put1(arr[1]);
+                        put1(path + "\\" + arr[1]);
                         //System.out.println("WE OUT");
                     } // if
                 } // if
@@ -117,7 +119,7 @@ public class ClientHandler implements Runnable {
                     if (arr[1].equals("..")) {
                         System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
                     } else {
-                        System.setProperty("user.dir", path + "/" + arr[1]);
+                        System.setProperty("user.dir", path + "\\" + arr[1]);
                     }
                     bw.write(System.getProperty("user.dir"));
                     bw.newLine();
