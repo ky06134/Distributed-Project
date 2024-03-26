@@ -16,15 +16,15 @@ class myftp {
     private static boolean isUploading = false;
 
     public static boolean online = false;
-    public static boolean registered = false;
+    public static boolean register = false;
 
     public static void main(String[] args) throws IOException, InterruptedException {
 
-        String configFile = args[0];
-        ArrayList<String> configDetails = getConfigDetails(configFile);
-        int iD = Integer.parseInt(configDetails.get(0));
-        String logFileName = configDetails.get(1);
-        String iPAndPort = configDetails.get(2);
+        String config = args[0];
+        ArrayList<String> configSplit = getConfigDetails(config);
+        int iD = Integer.parseInt(configSplit.get(0));
+        String logFileName = configSplit.get(1);
+        String iPAndPort = configSplit.get(2);
         String iPAndPortSplit[] = iPAndPort.split(" ");
         String machineName = iPAndPortSplit[0];
         Integer nport = Integer.parseInt(iPAndPortSplit[1]);
@@ -48,7 +48,24 @@ class myftp {
     } // main
 
     private static boolean checkCommand(String s) {
-        return true; // all commands here
+        String arr[] = s.split(" ");
+
+        if (arr[0].equals("register")) {
+            register = true;
+        }
+        if (arr[0].equals("deregister")) {
+            register = false;
+        }
+        if (arr[0].equals("disconnect")) {
+            online = false;
+        }
+        if (arr[0].equals("reconnect")) {
+            online = true;
+        }
+        if (arr[0].equals("msend")) {
+
+        }
+        return true;
     }
 
     private static ArrayList<String> getConfigDetails(String configFile) {

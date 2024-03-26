@@ -6,71 +6,52 @@ public class myftpserver {
 
     protected static String server_IP;
     private static Integer nport = 0; // normal port
-    private static Integer tport = 0; // terminate port
+    private static Integer thresh = 0; // threshold
 
     public static void main(String[] args) throws Exception {
 
-        try {
-            nport = Integer.valueOf(args[0]); // grab port from command line arg
-            tport = Integer.valueOf(args[1]);
-        } catch (NumberFormatException e) {
-            System.out.println("Invalid Port");
-            System.exit(0);
-        } // catch
-
-        try {
-            InetAddress iAddress = InetAddress.getLocalHost();
-            server_IP = iAddress.getHostAddress();
-            System.out.println("Server IP address : " + server_IP);
-        } catch (UnknownHostException e) {
-        }
-
-        // normal server on nport will stay on main thread
+        String config = args[0];
+        ArrayList<String> configSplit = getConfigDetails(config);
+        nport = Integer.parseInt(configSplit.get(0));
+        thresh = Integer.parseInt(configSplit.get(1));
+        InetAddress iAddress = InetAddress.getLocalHost();
+        server_IP = iAddress.getHostAddress();
+        System.out.println("Server IP address : " + server_IP);
         ServerSocket n_server = null;
         try {
             n_server = new ServerSocket(nport);
-            //System.out.println("normal server ip: " + n_server.getInetAddress());
+            // System.out.println("normal server ip: " + n_server.getInetAddress());
             System.out.println("normal server is now online and listening on port: " + nport);
         } catch (IOException e) {
             e.printStackTrace();
         } // try
-          // start new thread for terminate server on tport
-        ServerSocket t_server = null;
-        try {
-            t_server = new ServerSocket(tport);
-            //System.out.println("termination server ip: " + t_server.getInetAddress());
-            System.out.println("terminaton server is now online and listening on port: " + tport);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } 
-
-        ServerSocket put_server = null;
-        try {
-            put_server = new ServerSocket(8080);
-            //System.out.println("termination server ip: " + put_server.getInetAddress());
-            //System.out.println("terminaton server is now online and listening on port: " + 8080);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } 
-
-        ServerSocket get_server = null;
-        try {
-            get_server = new ServerSocket(8081);
-            //System.out.println("termination server ip: " + get_server.getInetAddress());
-            //System.out.println("terminaton server is now online and listening on port: " + 8081);
-        } catch (IOException e) {
-            e.printStackTrace();
-        } 
 
         while (true) {
             Socket n = n_server.accept(); // waits for connection from client
             System.out.println("Normal port connected");
             Socket t = t_server.accept();
             System.out.println("Terminate port connected");
-            runNow(new ClientHandler(n, t, put_server ,get_server));
+            runNow(new ClientHandler(n));
         } // while
 
     } // main
+
+    private static ArrayList<String> getConfigDetails(String configFile) {
+        ArrayList<String> configDetails = new ArrayList<String>();
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(configFile));
+            String placeHolder = null;
+            while ((placeHolder = br.readLine()) != null) {
+                configDetails.add(placeHolder.trim());
+            }
+            if (br != null) {
+                br.close();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return configDetails;
+    }
 
     /**
      * NOTE: we may have to put runnow in its own class with Hashmap
