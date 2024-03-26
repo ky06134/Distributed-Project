@@ -29,8 +29,6 @@ public class myftpserver {
         while (true) {
             Socket n = n_server.accept(); // waits for connection from client
             System.out.println("Normal port connected");
-            Socket t = t_server.accept();
-            System.out.println("Terminate port connected");
             runNow(new ClientHandler(n));
         } // while
 
