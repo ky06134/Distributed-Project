@@ -1,5 +1,6 @@
 import java.io.*;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.concurrent.locks.Lock;
 
 /**
@@ -18,46 +19,31 @@ import java.util.concurrent.locks.Lock;
  */
 public class ClientHandler implements Runnable {
 
-    private final Socket nsocket;
-    private final InputStream in;
-    private final OutputStream out;
+    private static ServerSocket server;
+    static Socket nsocket = null;
+    public static ArrayList<ParticipantStats> participants = new ArrayList<>();
+    public static int incomingMessagePort;
+    public static int td;
 
-    public ClientHandler(Socket n) throws IOException {
-        this.nsocket = n;
-        this.in = nsocket.getInputStream();
-        this.out = nsocket.getOutputStream();
-    } // constructor
+    public ClientHandler(ArrayList<ParticipantStats> participants, int td, int incomingMessagePort)
+            throws IOException {
+        this.incomingMessagePort = incomingMessagePort;
+        this.participants = participants;
+        this.td = td;
+        server = new ServerSocket(incomingMessagePort);
+    }
 
     public void run() {
-        InputStreamReader reader = null;
-        OutputStreamWriter writer = null;
-        BufferedReader br = null;
-        BufferedWriter bw = null;
-
         try {
-
-            reader = new InputStreamReader(this.in);
-            writer = new OutputStreamWriter(this.out);
-            br = new BufferedReader(reader);
-            bw = new BufferedWriter(writer);
-
             while (true) {
-
-                String prompt = "myftp>\n";
-                byte[] msg = prompt.getBytes();
-                out.write(msg, 0, msg.length);
-
-                String msgFromClient;
-
-                byte[] buffer = new byte[32];
-                int i = in.read(buffer);
-                msgFromClient = new String(buffer, 0, i);
-                System.out.println(
-                        "!!!message from client: " + msgFromClient);
-
-                String arr[] = msgFromClient.split(" ");
-
-                System.out.println("The command is " + msgFromClient);
+                System.out.println("Started");
+                nsocket = server.accept();
+                System.out.println("Participant connected");
+                ObjectInputStream inputStream = new ObjectInputStream(nsocket.getInputStream());
+                ObjectOutputStream outputStream = new ObjectOutputStream(nsocket.getOutputStream());
+                String logs = (String) inputStream.readObject();
+                String[] arr = logs.split(" ");
+                System.out.println(arr[0]);
 
                 if (arr[0].equals("register")) {
                     // register = true;
@@ -76,18 +62,9 @@ public class ClientHandler implements Runnable {
                 }
 
             } // while
-
-        } catch (IOException e) {
+        } catch (ClassNotFoundException | IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                bw.close();
-                br.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            } // try
-        } // try
-
+        }
     } // run
 
     // creates a new thread
