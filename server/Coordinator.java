@@ -6,14 +6,15 @@ public class Coordinator {
 
     protected static String server_IP;
     private static Integer nport = 0; // normal port
-    private static Integer thresh = 0; // threshold
+    private static Long thresh; // threshold
+    public static HashSet<Participant> pSet = new HashSet<>();
 
     public static void main(String[] args) throws Exception {
 
         String config = args[0];
         ArrayList<String> configSplit = getConfigDetails(config);
         nport = Integer.parseInt(configSplit.get(0));
-        thresh = Integer.parseInt(configSplit.get(1));
+        thresh = Long.parseLong(configSplit.get(1)) * 1000; //milliseconds
         InetAddress iAddress = InetAddress.getLocalHost();
         server_IP = iAddress.getHostAddress();
         System.out.println("Server IP address : " + server_IP);
@@ -53,16 +54,8 @@ public class Coordinator {
         return configDetails;
     }
 
-    /**
-     * NOTE: we may have to put runnow in its own class with Hashmap
-     * threadPool as a class variable so all threads can have access
-     * 
-     * I am unsure if multiple threads accessing the same variable is
-     * a problem or not :/
-     * 
-     * TIP: do some reseach into ConcurrentHashMap
-     */
-    // creates a new thread
+  
+
     public static void runNow(Runnable target) {
         Thread t = new Thread(target);
         t.start();
