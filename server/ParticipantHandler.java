@@ -34,22 +34,17 @@ public class ParticipantHandler implements Runnable {
             while (true) {
 
                 String prompt = "server>\n";
-                byte[] msg = prompt.getBytes();
-                out.write(msg, 0, msg.length);
+                bw.write(prompt);
+                bw.newLine();
+                bw.flush();
 
-                String msgFromClient;
-
-                byte[] buffer = new byte[32];
-                int i = in.read(buffer);
-                msgFromClient = new String(buffer, 0, i);
-                System.out.println(
-                        "!!!message from client: " + msgFromClient);
-
+                String msgFromClient = br.readLine();
                 String arr[] = msgFromClient.split(" ");
 
                 System.out.println("The command is " + msgFromClient);
 
                 if (arr[0].equals("register")) {
+                    p.setPort(Integer.parseInt(arr[1]));
                     register();
                 }
                 if (arr[0].equals("deregister")) {
@@ -81,6 +76,7 @@ public class ParticipantHandler implements Runnable {
 
     public void register() {
         Coordinator.pSet.add(p);
+        
     } //register 
 
     public void deregister() {
@@ -94,6 +90,17 @@ public class ParticipantHandler implements Runnable {
     public void disconnect() {
 
     } //disconnect
+
+    public synchronized void msend(String s) throws IOException {
+        byte[] msg = s.getBytes();
+        for(Participant p : Coordinator.pSet) {
+            if (p.getStatus().equals("online")) {
+                p.getOutStream().write(msg, 0, msg.length);
+            } else { //offline
+
+            }
+        }
+    } //
 
     // creates a new thread
     public static void runNow(Runnable target) {

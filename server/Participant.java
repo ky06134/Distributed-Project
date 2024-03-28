@@ -13,6 +13,7 @@ public class Participant {
     private Queue<Pair<String, Long>> msgHistory = new LinkedList<>();
     private OutputStream mcout;
     private Socket s;
+    private int port;
 
     public Participant(int id, InetAddress ip, String status) {
         this.id = id;
@@ -36,4 +37,20 @@ public class Participant {
         }
         return msgToSend;
     }
-}
+
+    public String getStatus() {
+        return this.status;
+    } //getStatus
+
+    public OutputStream getOutStream() {
+        return this.mcout;
+    } //getOutStream
+
+    public void setPort(int port) {
+        this.port = port;
+    } //setPort
+
+    public int getPort() {
+        return this.port;
+    } //getPort
+} //class
