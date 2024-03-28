@@ -1,3 +1,4 @@
+import java.io.IOException;
 import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.Socket;
@@ -11,7 +12,7 @@ public class Participant {
     private InetAddress ip;
     private String status;
     private Queue<Pair<String, Long>> msgHistory = new LinkedList<>();
-    private OutputStream mcout;
+    private OutputStream out;
     private Socket s;
     private int port;
 
@@ -21,8 +22,8 @@ public class Participant {
         this.status = status;
     } //constructor
 
-    public void addMsg(String s) {
-        msgHistory.add(new Pair<String, Long>(s, System.currentTimeMillis()));
+    public void addMsg(String s, Long t) {
+        msgHistory.add(new Pair<String, Long>(s, t));
     }
 
     public ArrayList<String> getHistory(Long threshold) {
@@ -36,15 +37,15 @@ public class Participant {
             } //if
         }
         return msgToSend;
-    }
+    } //getHistory
 
     public String getStatus() {
         return this.status;
     } //getStatus
 
-    public OutputStream getOutStream() {
-        return this.mcout;
-    } //getOutStream
+    public void setStatus(String s) {
+        this.status = s;
+    }
 
     public void setPort(int port) {
         this.port = port;
@@ -53,4 +54,17 @@ public class Participant {
     public int getPort() {
         return this.port;
     } //getPort
+
+    public void connect() throws IOException {
+        this.s = new Socket(this.ip, this.port);
+        this.out = this.s.getOutputStream();
+    } //connect
+
+    public OutputStream getOutputStream() {
+        return this.out;
+    } //getOutputStream
+
+    public int getId() {
+        return this.id;
+    }
 } //class

@@ -1,6 +1,6 @@
 import java.io.*;
 import java.net.*;
-import java.util.concurrent.locks.Lock;
+import java.util.ArrayList;
 
 public class ParticipantHandler implements Runnable {
 
@@ -45,19 +45,28 @@ public class ParticipantHandler implements Runnable {
 
                 if (arr[0].equals("register")) {
                     p.setPort(Integer.parseInt(arr[1]));
-                    register();
+                    p.connect();
+                    Coordinator.pSet.add(p);
+                    p.setStatus("online"); 
                 }
                 if (arr[0].equals("deregister")) {
-                    // register = false;
+                    Coordinator.pSet.remove(p);
                 }
                 if (arr[0].equals("disconnect")) {
-                    // online = false;
+                    p.setStatus("offline");
                 }
                 if (arr[0].equals("reconnect")) {
-                    // online = true;
-                }
+                    p.setPort(Integer.parseInt(arr[1]));
+                    p.connect();
+                    p.setStatus("online");
+                    ArrayList<String> history = p.getHistory(Coordinator.thresh);
+                    for (String s: history) {
+                        byte[] b = s.getBytes();
+                        p.getOutputStream().write(b, 0, b.length);
+                    } //for
+                } //if
                 if (arr[0].equals("msend")) {
-
+                    msend(p.getId() + "> " + arr[1]);
                 }
             } // while
 
@@ -74,33 +83,22 @@ public class ParticipantHandler implements Runnable {
 
     } // run
 
-    public void register() {
-        Coordinator.pSet.add(p);
-        
-    } //register 
-
-    public void deregister() {
-
-    } //deregister
-
-    public void reconnect() {
-
-    } //reconnect
-
-    public void disconnect() {
-
-    } //disconnect
-
+    //"id>>helloworld"
     public synchronized void msend(String s) throws IOException {
+        Long t = System.currentTimeMillis();
         byte[] msg = s.getBytes();
         for(Participant p : Coordinator.pSet) {
             if (p.getStatus().equals("online")) {
-                p.getOutStream().write(msg, 0, msg.length);
+                p.getOutputStream().write(msg, 0, msg.length);
             } else { //offline
-
-            }
-        }
-    } //
+                p.addMsg(s, t);
+            } //if
+        } //for
+        //write to log
+        FileWriter fr = new FileWriter(Coordinator.msgLog, true);
+        fr.write(s + t);
+        fr.close();
+    } //msend
 
     // creates a new thread
     public static void runNow(Runnable target) {

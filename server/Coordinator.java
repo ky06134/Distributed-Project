@@ -6,7 +6,8 @@ public class Coordinator {
 
     protected static String server_IP;
     private static Integer nport = 0; // normal port
-    private static Long thresh; // threshold
+    public static Long thresh; // threshold
+    public static final File msgLog = new File("logfile.txt");
     public static HashSet<Participant> pSet = new HashSet<>();
 
     public static void main(String[] args) throws Exception {
