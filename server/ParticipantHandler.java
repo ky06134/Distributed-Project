@@ -16,13 +16,13 @@ import java.util.concurrent.locks.Lock;
  * I'm just gonna place put on different threads to see what happens :P
  * it broke..
  */
-public class ClientHandler implements Runnable {
+public class ParticipantHandler implements Runnable {
 
     private final Socket nsocket;
     private final InputStream in;
     private final OutputStream out;
 
-    public ClientHandler(Socket n) throws IOException {
+    public ParticipantHandler(Socket n) throws IOException {
         this.nsocket = n;
         this.in = nsocket.getInputStream();
         this.out = nsocket.getOutputStream();

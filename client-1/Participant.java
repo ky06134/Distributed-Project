@@ -6,7 +6,7 @@ import java.util.Scanner;
 import java.util.concurrent.locks.ReentrantLock;
 
 // Client class 
-class myftp {
+class Participant {
 
     private static InputStream in;
     private static OutputStream out;
@@ -28,13 +28,13 @@ class myftp {
         Thread threadB = new Thread();
 
         nsocket = new Socket(machineName, nport);
-        myftp.in = nsocket.getInputStream();
-        myftp.out = nsocket.getOutputStream();
+        Participant.in = nsocket.getInputStream();
+        Participant.out = nsocket.getOutputStream();
         Scanner scanner = new Scanner(System.in);
         String userCommand = "";
 
-        InputStreamReader reader = new InputStreamReader(myftp.in);
-        OutputStreamWriter writer = new OutputStreamWriter(myftp.out);
+        InputStreamReader reader = new InputStreamReader(Participant.in);
+        OutputStreamWriter writer = new OutputStreamWriter(Participant.out);
         BufferedReader br = new BufferedReader(reader);
         BufferedWriter bw = new BufferedWriter(writer);
 

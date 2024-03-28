@@ -2,7 +2,7 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-public class myftpserver {
+public class Coordinator {
 
     protected static String server_IP;
     private static Integer nport = 0; // normal port
