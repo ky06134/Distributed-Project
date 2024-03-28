@@ -19,23 +19,13 @@ import java.util.concurrent.locks.Lock;
 public class ClientHandler implements Runnable {
 
     private final Socket nsocket;
-    private final Socket tsocket;
-    private final ServerSocket putServerSocket;
-    private final ServerSocket getServerSocket;
     private final InputStream in;
     private final OutputStream out;
-    private final InputStream tin;
-    private final OutputStream tout;
 
-    public ClientHandler(Socket n, Socket t, ServerSocket p, ServerSocket g) throws IOException {
+    public ClientHandler(Socket n) throws IOException {
         this.nsocket = n;
-        this.tsocket = t;
-        getServerSocket = g;
-        putServerSocket = p;
         this.in = nsocket.getInputStream();
         this.out = nsocket.getOutputStream();
-        this.tin = tsocket.getInputStream();
-        this.tout = tsocket.getOutputStream();
     } // constructor
 
     public void run() {
@@ -66,101 +56,24 @@ public class ClientHandler implements Runnable {
                         "!!!message from client: " + msgFromClient);
 
                 String arr[] = msgFromClient.split(" ");
-                int n = arr.length;
-                boolean newThread = false;
-                if (arr[n - 1].equals("&")) {
-                    newThread = true;
-                }
 
                 System.out.println("The command is " + msgFromClient);
 
-                if (arr[0].equals("get")) {
-                    String path = System.getProperty("user.dir");
-                    if (newThread) {
-                        Integer id = ServerThreadPool.generateID();
-                        bw.write(id.toString());
-                        bw.newLine();
-                        bw.flush();
-                        GetWorker gw = new GetWorker(path + "\\" + arr[1], getServerSocket, id);
-                        runNow(gw);
-                    } else {
-                        get1(path + "\\" + arr[1]);
-                    } // if
-                } // if
-
-                if (arr[0].equals("put")) {
-                    String path = System.getProperty("user.dir");
-                    if (newThread) {
-                        Integer id = ServerThreadPool.generateID();
-                        bw.write(id.toString());
-                        bw.newLine();
-                        bw.flush();
-                        // System.out.println("before error");
-                        PutWorker pw = new PutWorker(path + "\\" + arr[1], putServerSocket, id);
-                        System.out.println("PutWorked");
-                        runNow(pw);
-                    } else {
-                        put1(path + "\\" + arr[1]);
-                        //System.out.println("WE OUT");
-                    } // if
-                } // if
-
-                if (arr[0].equals("delete")) {
-                    String path = System.getProperty("user.dir");
-                    String filepath = path + "\\" + arr[1];
-                    Lock lock = LockManager.get(filepath);
-                    lock.lock();
-                    try {
-                        delete(filepath);
-                    } finally {
-                        lock.unlock();
-                    }
+                if (arr[0].equals("register")) {
+                    // register = true;
                 }
-                if (arr[0].equals("cd")) {
-                    String path = System.getProperty("user.dir");
-
-                    if (arr[1].equals("..")) {
-                        System.setProperty("user.dir", new File(path).getParentFile().getAbsolutePath());
-                    } else {
-                        System.setProperty("user.dir", path + "\\" + arr[1]);
-                    }
-                    bw.write(System.getProperty("user.dir"));
-                    bw.newLine();
-                    bw.flush();
+                if (arr[0].equals("deregister")) {
+                    // register = false;
                 }
-
-                if (arr[0].equals("mkdir")) {
-                    String path = System.getProperty("user.dir");
-                    makeDirectory(path + "/" + arr[1]);
+                if (arr[0].equals("disconnect")) {
+                    // online = false;
+                }
+                if (arr[0].equals("reconnect")) {
+                    // online = true;
+                }
+                if (arr[0].equals("msend")) {
 
                 }
-
-                if (arr[0].equals("pwd")) {
-                    String path = System.getProperty("user.dir");
-                    bw.write(path);
-                    bw.newLine();
-                    bw.flush();
-                }
-
-                if (arr[0].equals("ls")) {
-                    String temp = listDirectory(System.getProperty("user.dir"));
-                    bw.write(temp);
-                    bw.newLine();
-                    bw.flush();
-                }
-
-                if (arr[0].equals("terminate")) {
-                    ServerThreadPool.getThread(Integer.valueOf(arr[1])).terminate();
-                    ServerThreadPool.remove(Integer.valueOf(arr[1]));
-                }
-
-                if (arr[0].equals("quit")) {
-                    bw.write("Closing connection");
-                    bw.newLine();
-                    bw.flush();
-                    bw.close();
-                    br.close();
-                } // if
             } // while
 
         } catch (IOException e) {
