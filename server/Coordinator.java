@@ -31,7 +31,7 @@ public class Coordinator {
         while (true) {
             Socket n = n_server.accept(); // waits for connection from client
             System.out.println("Normal port connected");
-            runNow(new ClientHandler(n));
+            runNow(new ParticipantHandler(n));
         } // while
 
     } // main
